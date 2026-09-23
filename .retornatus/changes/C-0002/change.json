@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "id": "C-0002",
+  "title": "List Extractor logic + Omni brand (green/gold)",
+  "demand": {
+    "schema_version": 1,
+    "statement": "Brand polish plus real List Extractor logic",
+    "kind": "OTHER"
+  },
+  "lane": "STANDARD",
+  "active_contract_version": 1,
+  "relations": [],
+  "created_at": "2026-09-23T00:14:38.866709Z"
+}

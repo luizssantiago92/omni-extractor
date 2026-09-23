@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Data — Omni Extractor</title>
+    <link rel="stylesheet" href="table.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <div class="bar-left">
+        <img src="../icons/logo.svg" width="28" height="28" alt="" />
+        <div>
+          <h1>Data</h1>
+          <select id="dataset-select"></select>
+        </div>
+      </div>
+      <div class="bar-right">
+        <span id="row-meta" class="meta"></span>
+        <button type="button" class="btn" id="btn-export">Exportar CSV</button>
+      </div>
+    </header>
+    <main>
+      <div class="table-wrap">
+        <table id="grid">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="empty" class="empty is-hidden">Nenhum dataset. Extraia uma lista pelo side panel.</p>
+    </main>
+    <script src="table.js"></script>
+  </body>
+</html>

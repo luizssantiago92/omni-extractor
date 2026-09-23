@@ -10,7 +10,7 @@
     <div class="app">
       <header class="top">
         <div class="brand">
-          <span class="brand-mark" aria-hidden="true"></span>
+          <img class="brand-mark" src="../icons/logo.svg" width="40" height="40" alt="" />
           <div class="brand-text">
             <h1>Omni Extractor</h1>
             <p>Extraia dados de qualquer página</p>
@@ -19,76 +19,62 @@
       </header>
 
       <nav class="nav" aria-label="Principal">
-        <button type="button" class="nav-btn is-active" data-nav="home" id="nav-home">
-          <span class="nav-ico" aria-hidden="true">⌂</span>
-          Menu
-        </button>
-        <button type="button" class="nav-btn" data-nav="data" id="nav-data">
-          <span class="nav-ico" aria-hidden="true">▤</span>
-          Data
-        </button>
-        <button type="button" class="nav-btn" data-nav="cloud" id="nav-cloud">
-          <span class="nav-ico" aria-hidden="true">☁</span>
-          Cloud
-        </button>
+        <button type="button" class="nav-btn is-active" data-nav="home" id="nav-home">Menu</button>
+        <button type="button" class="nav-btn" data-nav="data" id="nav-data">Data</button>
+        <button type="button" class="nav-btn" data-nav="cloud" id="nav-cloud">Cloud</button>
       </nav>
 
       <main class="main">
-        <!-- HOME -->
         <section class="view is-visible" id="view-home" data-view="home">
           <p class="eyebrow">Ferramentas</p>
           <h2 class="view-title">O que você quer extrair?</h2>
           <p class="view-lead">Começamos pelo extrator de listas. Outras ferramentas entram nas próximas etapas.</p>
-
           <button type="button" class="tool-card" id="open-list-extractor">
             <span class="tool-card-accent" aria-hidden="true"></span>
             <span class="tool-card-body">
               <span class="tool-card-label">List Extractor</span>
-              <span class="tool-card-desc">Listas, grids e tabelas — com scroll, paginação ou “carregar mais”.</span>
+              <span class="tool-card-desc">Listas, grids e tabelas — scroll, paginação ou carregar mais.</span>
             </span>
             <span class="tool-card-arrow" aria-hidden="true">→</span>
           </button>
         </section>
 
-        <!-- LIST EXTRACTOR -->
         <section class="view" id="view-list" data-view="list">
           <button type="button" class="back-link" id="back-home">← Voltar ao menu</button>
-
           <div class="tool-head">
             <h2 class="tool-name">List Extractor</h2>
             <p class="tool-sub">Extraia dados de listas, tabelas e conteúdo paginado</p>
           </div>
 
-          <ol class="steps">
-            <li class="step" id="step-select">
-              <div class="step-label">
-                <span class="step-num">1</span>
-                <span>Selecionar lista</span>
-              </div>
+          <div class="status-banner is-hidden" id="picker-banner">
+            Passe o mouse na página e clique na lista. Esc cancela.
+          </div>
+          <div class="status-banner is-hidden" id="button-banner">
+            Clique no botão de paginação ou “carregar mais” na página.
+          </div>
 
+          <ol class="steps" id="list-steps">
+            <li class="step" id="step-select">
+              <div class="step-label"><span class="step-num">1</span><span>Selecionar lista</span></div>
               <div class="select-panel" id="select-idle">
                 <button type="button" class="select-cta" id="btn-select-list">
                   <span class="select-cta-icon" aria-hidden="true">⌖</span>
                   <span class="select-cta-title">Clique para selecionar a lista</span>
-                  <span class="select-cta-hint">Passe o mouse sobre os itens e clique para confirmar (seleção real na próxima etapa — aqui é prévia da UI)</span>
+                  <span class="select-cta-hint">Hover destaca a lista e mostra a contagem; clique confirma.</span>
                 </button>
               </div>
-
               <div class="select-panel is-hidden" id="select-done">
                 <div class="select-done-row">
-                  <span class="badge badge-ok">Lista selecionada</span>
-                  <span class="badge" id="item-count-badge">12 itens</span>
+                  <span class="badge badge-gold">Lista selecionada</span>
+                  <span class="badge badge-green" id="item-count-badge">0 itens</span>
                 </div>
-                <p class="select-done-note">Prévia de UI — a detecção na página entra na próxima entrega.</p>
+                <p class="select-done-note" id="select-path"></p>
                 <button type="button" class="linkish" id="btn-reselect">Selecionar de novo</button>
               </div>
             </li>
 
             <li class="step is-dim" id="step-load">
-              <div class="step-label">
-                <span class="step-num">2</span>
-                <span>Carregar mais itens</span>
-              </div>
+              <div class="step-label"><span class="step-num">2</span><span>Carregar mais itens</span></div>
               <div class="mode-list" role="radiogroup" aria-label="Modo de carregar mais">
                 <button type="button" class="mode-card is-selected" data-mode="auto-scroll" role="radio" aria-checked="true">
                   <span class="mode-title">Auto-Scroll</span>
@@ -96,38 +82,54 @@
                 </button>
                 <button type="button" class="mode-card" data-mode="pagination" role="radio" aria-checked="false">
                   <span class="mode-title">Paginação</span>
-                  <span class="mode-desc">Clica em “próxima” até esgotar as páginas da lista.</span>
+                  <span class="mode-desc">Clica em “próxima” até esgotar as páginas.</span>
                 </button>
                 <button type="button" class="mode-card" data-mode="load-more" role="radio" aria-checked="false">
                   <span class="mode-title">Carregar mais</span>
-                  <span class="mode-desc">Clica no botão “load more / mostrar mais” na mesma página.</span>
+                  <span class="mode-desc">Clica em “load more / mostrar mais” na mesma página.</span>
                 </button>
               </div>
+              <button type="button" class="btn-secondary is-hidden" id="btn-pick-action">
+                Selecionar botão na página
+              </button>
+              <p class="hint is-hidden" id="action-hint"></p>
             </li>
           </ol>
+
+          <div class="complete-panel is-hidden" id="complete-panel">
+            <p class="complete-label">Extração concluída</p>
+            <p class="complete-count"><span id="complete-n">0</span> <span class="complete-unit">itens</span></p>
+            <div class="thumb-grid" id="thumb-grid"></div>
+            <button type="button" class="btn-primary" id="btn-view-data">Ver dados e exportar CSV</button>
+            <button type="button" class="linkish" id="btn-new-run">Nova extração</button>
+          </div>
         </section>
 
-        <!-- DATA stub -->
         <section class="view" id="view-data" data-view="data">
           <p class="eyebrow">Data</p>
           <h2 class="view-title">Seus datasets</h2>
-          <p class="view-lead">Aqui ficam as extrações locais. A tabela completa entra depois do List Extractor funcional.</p>
-          <div class="empty-card">Nenhum dataset ainda.</div>
+          <p class="view-lead">Extrações salvas localmente neste navegador.</p>
+          <div id="dataset-list" class="dataset-list"></div>
+          <button type="button" class="btn-secondary" id="btn-open-table">Abrir tabela Data</button>
         </section>
 
-        <!-- CLOUD stub -->
         <section class="view" id="view-cloud" data-view="cloud">
           <p class="eyebrow">Cloud</p>
           <h2 class="view-title">Nuvem</h2>
-          <p class="view-lead">Salvar e manipular datasets na nuvem será recurso pago. Por enquanto só o placeholder.</p>
+          <p class="view-lead">Salvar datasets na nuvem será recurso pago. Por enquanto só o placeholder.</p>
           <div class="empty-card">Em breve — plano pago.</div>
         </section>
       </main>
 
       <footer class="foot" id="foot-list" hidden>
-        <button type="button" class="btn-primary" id="btn-start" disabled>
-          Iniciar extração
-        </button>
+        <div class="progress is-hidden" id="progress-box">
+          <div class="progress-row">
+            <span>Extraindo…</span>
+            <strong id="progress-count">0</strong>
+          </div>
+          <button type="button" class="linkish" id="btn-stop">Parar</button>
+        </div>
+        <button type="button" class="btn-primary" id="btn-start" disabled>Iniciar extração</button>
       </footer>
     </div>
     <script src="app.js"></script>

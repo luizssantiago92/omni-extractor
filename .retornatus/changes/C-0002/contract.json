@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "change_id": "C-0002",
+  "version": 1,
+  "what": "Responsive green/gold Omni UI with O+6-arms icon; content-script list picker and extraction; Auto-Scroll/Pagination/Load More; local datasets + minimal Data table; completion screen. Out of scope: settings/notifications chrome, Cloud backend, Text/Image/Maps tools.",
+  "constraints": [],
+  "done_criteria": [
+    "Icon and palette updated; side panel adapts to narrow/wide panel; user can select a real list, run extraction with chosen load-more mode, see progress/completion, and view/export CSV from local Data table"
+  ],
+  "active": true,
+  "activated_at": "2026-09-23T00:14:41.741360Z"
+}

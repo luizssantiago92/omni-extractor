@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "C-0002/A-001",
+  "origin_kind": "CONTRACT",
+  "origin_ref": "contract@v1",
+  "objective": "Responsive green/gold Omni UI with O+6-arms icon; content-script list picker and extraction; Auto-Scroll/Pagination/Load More; local datasets + minimal Data table; completion screen. Out of scope: settings/notifications chrome, Cloud backend, Text/Image/Maps tools.",
+  "scope": null,
+  "constraints": [],
+  "success_conditions": [
+    "Icon and palette updated; side panel adapts to narrow/wide panel; user can select a real list, run extraction with chosen load-more mode, see progress/completion, and view/export CSV from local Data table"
+  ],
+  "authority": {
+    "schema_version": 1,
+    "category": "DELEGATED",
+    "rationale": "routine"
+  },
+  "tasks": [],
+  "relations": []
+}

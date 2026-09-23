@@ -2,13 +2,14 @@
 
 Chrome extension (Manifest V3) for extracting structured data from web pages.
 
-## Current slice (v0.1.0)
+## Current slice (v0.2.0)
 
-- Side panel UI shell with Omni branding
-- **List Extractor** screen only (other tools later)
-- Load-more mode picker: Auto-Scroll / Pagination / Load More
-- **Data** and **Cloud** nav placeholders
-- Selection and Start are **UI stubs** (real page picker + extraction next)
+- Brand: gold **O** + six extraction arms; green + gold palette
+- Responsive side panel (adapts to panel width)
+- **List Extractor** with real page picker + extraction
+- Load-more: Auto-Scroll / Pagination / Load More
+- Local **Data** table + CSV export
+- **Cloud** placeholder (paid later)
 
 Deferred: settings, notifications, info / favorite / refresh / close chrome on the tool.
 

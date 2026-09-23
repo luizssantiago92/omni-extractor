@@ -10,7 +10,7 @@ _No active Retornatus Rules._
 
 ## Project workflow
 Read and follow `.cursor/skills/retornatus/SKILL.md` before implementing project changes.
-This project will be a Google Chrome extension for page data extraction (Omni Extractor), inspired by Ultimate Web Scraper. Research continuity lives in `.retornatus/project/project.md`. V1 scope and stack are pending after reference research.
+Chrome extension (MV3) for page data extraction. App code lives in `extension/`. Continuity: `.retornatus/project/project.md`. Brand: gold O + six arms; green/gold UI.
 The harness source in `.setup/retornatus-source/` is installation reference only, not application code.
 If `retornatus` is unavailable in the current terminal PATH, use `& "$env:USERPROFILE\.local\bin\retornatus.exe"` in PowerShell.
 

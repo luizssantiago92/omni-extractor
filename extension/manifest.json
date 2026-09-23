@@ -2,8 +2,9 @@
   "manifest_version": 3,
   "name": "Omni Extractor",
   "description": "Extract structured data from web pages — starting with lists.",
-  "version": "0.1.0",
-  "permissions": ["sidePanel", "storage"],
+  "version": "0.2.0",
+  "permissions": ["sidePanel", "storage", "scripting", "activeTab", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "background": {
     "service_worker": "background.js"
   },
