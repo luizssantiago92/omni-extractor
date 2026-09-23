@@ -8,64 +8,108 @@
   </head>
   <body>
     <div class="app">
+      <div class="ambient" aria-hidden="true"></div>
+
       <header class="top">
         <div class="brand">
-          <img class="brand-mark" src="../icons/logo.svg" width="40" height="40" alt="" />
+          <div class="brand-mark-wrap">
+            <img class="brand-mark" src="../icons/logo.svg" width="44" height="44" alt="" />
+          </div>
           <div class="brand-text">
-            <h1>Omni Extractor</h1>
-            <p>Extraia dados de qualquer página</p>
+            <p class="brand-kicker">Omni</p>
+            <h1>Extractor</h1>
           </div>
         </div>
       </header>
 
       <nav class="nav" aria-label="Principal">
-        <button type="button" class="nav-btn is-active" data-nav="home" id="nav-home">Menu</button>
-        <button type="button" class="nav-btn" data-nav="data" id="nav-data">Data</button>
-        <button type="button" class="nav-btn" data-nav="cloud" id="nav-cloud">Cloud</button>
+        <div class="nav-track" role="tablist">
+          <button type="button" class="nav-btn is-active" data-nav="home" id="nav-home" role="tab" aria-selected="true">
+            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+            <span>Menu</span>
+          </button>
+          <button type="button" class="nav-btn" data-nav="data" id="nav-data" role="tab" aria-selected="false">
+            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5h16v3H4V5Zm0 5.5h16V14H4v-3.5ZM4 16h16v3H4v-3Z"/></svg>
+            <span>Data</span>
+          </button>
+          <button type="button" class="nav-btn" data-nav="cloud" id="nav-cloud" role="tab" aria-selected="false">
+            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.5 18a4.5 4.5 0 0 1-.3-9 6 6 0 0 1 11.6 1.6A3.8 3.8 0 0 1 18.2 18H7.5Z"/></svg>
+            <span>Cloud</span>
+          </button>
+        </div>
       </nav>
 
       <main class="main">
         <section class="view is-visible" id="view-home" data-view="home">
-          <p class="eyebrow">Ferramentas</p>
-          <h2 class="view-title">O que você quer extrair?</h2>
-          <p class="view-lead">Começamos pelo extrator de listas. Outras ferramentas entram nas próximas etapas.</p>
+          <div class="hero">
+            <p class="eyebrow">Ferramentas</p>
+            <h2 class="view-title">Extraia com precisão</h2>
+            <p class="view-lead">Começamos pelo List Extractor — listas, grids e tabelas viram datasets prontos para exportar.</p>
+          </div>
+
           <button type="button" class="tool-card" id="open-list-extractor">
-            <span class="tool-card-accent" aria-hidden="true"></span>
+            <span class="tool-card-glow" aria-hidden="true"></span>
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40"><rect x="6" y="8" width="28" height="4" rx="2" fill="currentColor" opacity=".95"/><rect x="6" y="18" width="22" height="4" rx="2" fill="currentColor" opacity=".7"/><rect x="6" y="28" width="16" height="4" rx="2" fill="currentColor" opacity=".45"/></svg>
+            </span>
             <span class="tool-card-body">
               <span class="tool-card-label">List Extractor</span>
-              <span class="tool-card-desc">Listas, grids e tabelas — scroll, paginação ou carregar mais.</span>
+              <span class="tool-card-desc">Smart detection · scroll · paginação · carregar mais</span>
             </span>
-            <span class="tool-card-arrow" aria-hidden="true">→</span>
+            <span class="tool-card-cta" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 6l6 6-6 6V6Z"/></svg>
+            </span>
           </button>
+
+          <div class="coming-row" aria-hidden="true">
+            <div class="coming-chip">Texto · em breve</div>
+            <div class="coming-chip">Imagens · em breve</div>
+            <div class="coming-chip">Maps · em breve</div>
+          </div>
         </section>
 
         <section class="view" id="view-list" data-view="list">
-          <button type="button" class="back-link" id="back-home">← Voltar ao menu</button>
+          <button type="button" class="back-link" id="back-home">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
+            Menu
+          </button>
+
           <div class="tool-head">
+            <div class="tool-badge">LISTAS</div>
             <h2 class="tool-name">List Extractor</h2>
-            <p class="tool-sub">Extraia dados de listas, tabelas e conteúdo paginado</p>
+            <p class="tool-sub">Selecione uma lista na página e escolha como carregar o restante.</p>
           </div>
 
           <div class="status-banner is-hidden" id="picker-banner">
-            Passe o mouse na página e clique na lista. Esc cancela.
+            <span class="pulse"></span>
+            Passe o mouse na página e clique na lista · Esc cancela
           </div>
           <div class="status-banner is-hidden" id="button-banner">
-            Clique no botão de paginação ou “carregar mais” na página.
+            <span class="pulse"></span>
+            Clique no botão de paginação ou “carregar mais”
           </div>
 
           <ol class="steps" id="list-steps">
             <li class="step" id="step-select">
-              <div class="step-label"><span class="step-num">1</span><span>Selecionar lista</span></div>
+              <div class="step-label">
+                <span class="step-num">1</span>
+                <span class="step-label-text">Selecionar lista</span>
+              </div>
+
               <div class="select-panel" id="select-idle">
                 <button type="button" class="select-cta" id="btn-select-list">
-                  <span class="select-cta-icon" aria-hidden="true">⌖</span>
-                  <span class="select-cta-title">Clique para selecionar a lista</span>
-                  <span class="select-cta-hint">Hover destaca a lista e mostra a contagem; clique confirma.</span>
+                  <span class="select-ring" aria-hidden="true"></span>
+                  <span class="select-cta-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><circle cx="22" cy="22" r="12" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M31 31 41 41" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </span>
+                  <span class="select-cta-title">Selecionar na página</span>
+                  <span class="select-cta-hint">Hover destaca a lista e mostra a contagem</span>
                 </button>
               </div>
-              <div class="select-panel is-hidden" id="select-done">
+
+              <div class="select-panel select-done is-hidden" id="select-done">
                 <div class="select-done-row">
-                  <span class="badge badge-gold">Lista selecionada</span>
+                  <span class="badge badge-gold">Lista pronta</span>
                   <span class="badge badge-green" id="item-count-badge">0 itens</span>
                 </div>
                 <p class="select-done-note" id="select-path"></p>
@@ -74,31 +118,52 @@
             </li>
 
             <li class="step is-dim" id="step-load">
-              <div class="step-label"><span class="step-num">2</span><span>Carregar mais itens</span></div>
+              <div class="step-label">
+                <span class="step-num">2</span>
+                <span class="step-label-text">Carregar mais itens</span>
+              </div>
               <div class="mode-list" role="radiogroup" aria-label="Modo de carregar mais">
                 <button type="button" class="mode-card is-selected" data-mode="auto-scroll" role="radio" aria-checked="true">
-                  <span class="mode-title">Auto-Scroll</span>
-                  <span class="mode-desc">Rola a página para carregar itens (scroll infinito).</span>
+                  <span class="mode-ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3v14m0 0-4-4m4 4 4-4M5 19h14"/></svg>
+                  </span>
+                  <span class="mode-copy">
+                    <span class="mode-title">Auto-Scroll</span>
+                    <span class="mode-desc">Rola até esgotar o scroll infinito</span>
+                  </span>
+                  <span class="mode-check" aria-hidden="true"></span>
                 </button>
                 <button type="button" class="mode-card" data-mode="pagination" role="radio" aria-checked="false">
-                  <span class="mode-title">Paginação</span>
-                  <span class="mode-desc">Clica em “próxima” até esgotar as páginas.</span>
+                  <span class="mode-ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5h8v2H8V5Zm-3 5h14v8H5v-8Zm9 2v4h3v-4h-3Z"/></svg>
+                  </span>
+                  <span class="mode-copy">
+                    <span class="mode-title">Paginação</span>
+                    <span class="mode-desc">Avança páginas com o botão “próxima”</span>
+                  </span>
+                  <span class="mode-check" aria-hidden="true"></span>
                 </button>
                 <button type="button" class="mode-card" data-mode="load-more" role="radio" aria-checked="false">
-                  <span class="mode-title">Carregar mais</span>
-                  <span class="mode-desc">Clica em “load more / mostrar mais” na mesma página.</span>
+                  <span class="mode-ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 11h10v2H7v-2Zm5-8 4 4h-3v4h-2V7H8l4-4Zm-4 14h8l-4 4-4-4Z"/></svg>
+                  </span>
+                  <span class="mode-copy">
+                    <span class="mode-title">Carregar mais</span>
+                    <span class="mode-desc">Clica “mostrar mais / load more”</span>
+                  </span>
+                  <span class="mode-check" aria-hidden="true"></span>
                 </button>
               </div>
-              <button type="button" class="btn-secondary is-hidden" id="btn-pick-action">
-                Selecionar botão na página
-              </button>
+              <button type="button" class="btn-secondary is-hidden" id="btn-pick-action">Selecionar botão na página</button>
               <p class="hint is-hidden" id="action-hint"></p>
             </li>
           </ol>
 
           <div class="complete-panel is-hidden" id="complete-panel">
+            <div class="complete-orb" aria-hidden="true"></div>
             <p class="complete-label">Extração concluída</p>
-            <p class="complete-count"><span id="complete-n">0</span> <span class="complete-unit">itens</span></p>
+            <p class="complete-count"><span id="complete-n">0</span></p>
+            <p class="complete-unit">itens extraídos</p>
             <div class="thumb-grid" id="thumb-grid"></div>
             <button type="button" class="btn-primary" id="btn-view-data">Ver dados e exportar CSV</button>
             <button type="button" class="linkish" id="btn-new-run">Nova extração</button>
@@ -106,30 +171,40 @@
         </section>
 
         <section class="view" id="view-data" data-view="data">
-          <p class="eyebrow">Data</p>
-          <h2 class="view-title">Seus datasets</h2>
-          <p class="view-lead">Extrações salvas localmente neste navegador.</p>
+          <div class="hero">
+            <p class="eyebrow">Data</p>
+            <h2 class="view-title">Datasets locais</h2>
+            <p class="view-lead">Tudo fica no seu navegador até você exportar.</p>
+          </div>
           <div id="dataset-list" class="dataset-list"></div>
-          <button type="button" class="btn-secondary" id="btn-open-table">Abrir tabela Data</button>
+          <button type="button" class="btn-secondary" id="btn-open-table">Abrir tabela completa</button>
         </section>
 
         <section class="view" id="view-cloud" data-view="cloud">
-          <p class="eyebrow">Cloud</p>
-          <h2 class="view-title">Nuvem</h2>
-          <p class="view-lead">Salvar datasets na nuvem será recurso pago. Por enquanto só o placeholder.</p>
-          <div class="empty-card">Em breve — plano pago.</div>
+          <div class="hero">
+            <p class="eyebrow">Cloud</p>
+            <h2 class="view-title">Nuvem Omni</h2>
+            <p class="view-lead">Sincronizar e manipular datasets remotos será plano pago.</p>
+          </div>
+          <div class="empty-card">
+            <strong>Em breve</strong>
+            <span>Placeholder — sem cobrança enquanto estiver local.</span>
+          </div>
         </section>
       </main>
 
       <footer class="foot" id="foot-list" hidden>
         <div class="progress is-hidden" id="progress-box">
+          <div class="progress-bar"><span id="progress-fill"></span></div>
           <div class="progress-row">
-            <span>Extraindo…</span>
+            <span>Extraindo</span>
             <strong id="progress-count">0</strong>
           </div>
           <button type="button" class="linkish" id="btn-stop">Parar</button>
         </div>
-        <button type="button" class="btn-primary" id="btn-start" disabled>Iniciar extração</button>
+        <button type="button" class="btn-primary" id="btn-start" disabled>
+          <span>Iniciar extração</span>
+        </button>
       </footer>
     </div>
     <script src="app.js"></script>

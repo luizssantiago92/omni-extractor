@@ -78,7 +78,9 @@
     });
     const navKey = name === "list" ? "home" : name;
     Object.entries(navButtons).forEach(([key, el]) => {
-      el.classList.toggle("is-active", key === navKey);
+      const on = key === navKey;
+      el.classList.toggle("is-active", on);
+      el.setAttribute("aria-selected", on ? "true" : "false");
     });
     els.footList.hidden =
       name !== "list" || !els.completePanel.classList.contains("is-hidden");
@@ -167,7 +169,7 @@
     const { datasets = [] } = await chrome.storage.local.get("datasets");
     els.datasetList.innerHTML = "";
     if (!datasets.length) {
-      els.datasetList.innerHTML = `<div class="empty-card">Nenhum dataset ainda.</div>`;
+      els.datasetList.innerHTML = `<div class="empty-card"><strong>Nenhum dataset</strong><span>Extraia uma lista para ver os dados aqui.</span></div>`;
       return;
     }
     datasets.slice(0, 20).forEach((ds) => {
