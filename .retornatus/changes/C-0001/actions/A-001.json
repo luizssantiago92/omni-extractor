@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "C-0001/A-001",
+  "origin_kind": "CONTRACT",
+  "origin_ref": "contract@v1",
+  "objective": "MV3 side panel: Omni-branded home with List Extractor only; List Extractor UI steps (select list CTA, Auto-Scroll/Pagination/Load More cards, Start extraction stub); Data and Cloud nav placeholders. Out of scope: settings, notifications, info/favorite/refresh/close tool chrome, real DOM extraction, Data Table window, Cloud backend.",
+  "scope": null,
+  "constraints": [],
+  "success_conditions": [
+    "Extension loads unpacked in Chrome; side panel shows home and List Extractor screens; load-more mode selection works in UI; Start stays disabled until list selected (selection can be stubbed); no settings/notifications chrome; repo pushed to github.com/luizssantiago92/omni-extractor"
+  ],
+  "authority": {
+    "schema_version": 1,
+    "category": "DELEGATED",
+    "rationale": "routine"
+  },
+  "tasks": [],
+  "relations": []
+}
