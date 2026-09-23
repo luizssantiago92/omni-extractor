@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "C-0002/E-001",
+  "type": "test_result",
+  "subject": "List Extractor v0.2.0 brand+logic",
+  "source": "node --check + implementation files",
+  "producer": "agent",
+  "observed_at": "2026-09-23T00:21:30.294182Z",
+  "subject_state": "commit:456c50a14c9229276c2255ddfe0bfb3c27918105",
+  "relations": [
+    {
+      "type": "SUPPORTS",
+      "target_id": "C-0002/claim-done-1",
+      "note": null
+    }
+  ]
+}
