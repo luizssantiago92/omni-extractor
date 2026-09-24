@@ -175,7 +175,8 @@ body {
     linear-gradient(105deg, rgba(6, 7, 15, 0.66) 0%, rgba(6, 7, 15, 0.28) 48%, transparent 74%);
 }
 
-.app > :not(.ambient) {
+/* Zero specificity so section rules (.top, .nav…) can set their own z-index */
+:where(.app > :not(.ambient)) {
   position: relative;
   z-index: 1;
 }
@@ -1736,6 +1737,32 @@ body {
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: stretch;
+  transition:
+    opacity 0.3s var(--ease),
+    transform 0.3s var(--ease),
+    visibility 0.3s var(--ease);
+}
+
+/* Space stays reserved so the layout never jumps when actions appear */
+.foot.is-awaiting {
+  background: none;
+  border-top-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.foot.is-awaiting .foot-actions {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foot-actions {
+    transition: none;
+  }
 }
 
 .foot-actions .btn-primary {
