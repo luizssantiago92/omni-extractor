@@ -557,9 +557,21 @@
     }
     renderBlockChips();
     els.btnStart.disabled = !canStart();
+
+    updateFootGate();
     renderPaginationControls();
     renderFilterControls();
     renderDataBadge();
+  }
+
+  /** Start / Data / Cloud stay hidden until there is something to extract. */
+  function updateFootGate() {
+    let hasSelection = true;
+    if (state.mode === "blocks") hasSelection = state.selections.length > 0;
+    else if (state.mode === "filter") {
+      hasSelection = parseFilterTokens(state.filterRaw).tokens.length > 0;
+    }
+    els.footList.classList.toggle("is-awaiting", !hasSelection && !state.extracting);
   }
 
   function renderDataBadge() {
@@ -1069,11 +1081,20 @@
     renderNotifications();
   });
 
-  document.addEventListener("click", (e) => {
-    const t = e.target;
-    if (!(t instanceof Element)) return;
-    if (t.closest("#notify-panel, #settings-panel, #btn-notify, #btn-settings")) return;
-    closeFlyouts();
+  // Capture phase: buttons that stopPropagation() must still dismiss open menus
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      const t = e.target;
+      if (!(t instanceof Element)) return;
+      if (t.closest("#notify-panel, #settings-panel, #btn-notify, #btn-settings")) return;
+      closeFlyouts();
+    },
+    true
+  );
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeFlyouts();
   });
 
   renderNotifications();
@@ -1274,6 +1295,7 @@
     state.filterRaw = els.filterTokens.value;
     renderFilterControls();
     els.btnStart.disabled = !canStart();
+    updateFootGate();
     if (state.mode === "filter") {
       const { tokens } = parseFilterTokens(state.filterRaw);
       els.trayMeta.textContent = tokens.length
