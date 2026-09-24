@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "change_id": "C-0003",
+  "version": 2,
+  "what": "Mode-first List Extractor with 3 modes: multi-block select, full-page (+load-more), pagination (limit/all + collection).",
+  "constraints": [
+    "No settings/cloud; Text/Image/Maps out of scope."
+  ],
+  "done_criteria": [
+    "UI chooses mode first; Blocks supports multi-select until Done; Full-page and Pagination need no item picker (dominant list); pagination writes per-page datasets + collection; extension 0.5.0."
+  ],
+  "active": true,
+  "activated_at": "2026-09-23T01:56:11.872923Z"
+}

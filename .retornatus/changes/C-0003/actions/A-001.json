@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "C-0003/A-001",
+  "origin_kind": "CONTRACT",
+  "origin_ref": "contract@v1",
+  "objective": "Replace load-more triad with 4 paradigms: (1) block select default (2) all items currently on page (3) page + load-more expansion (4) pagination with page limit or all, one dataset per page saved as a collection.",
+  "scope": null,
+  "constraints": [],
+  "success_conditions": [
+    "UI exposes 4 paradigms; block is default; whole-page extracts all loaded matching items; load-more auto-discovers and expands; pagination respects page count/all and writes one dataset per page plus a collection"
+  ],
+  "authority": {
+    "schema_version": 1,
+    "category": "DELEGATED",
+    "rationale": "routine"
+  },
+  "tasks": [],
+  "relations": []
+}

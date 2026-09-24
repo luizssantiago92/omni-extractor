@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "change_id": "C-0004",
+  "version": 1,
+  "what": "Steel/gold palette, new mark, tip slides, notify+settings UI shells",
+  "constraints": [],
+  "done_criteria": [
+    "New palette visible; tips rotate 5s; notify list opens; settings placeholder; no forced login"
+  ],
+  "active": true,
+  "activated_at": "2026-09-23T03:56:20.335071Z"
+}

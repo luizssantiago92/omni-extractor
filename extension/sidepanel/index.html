@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,25 +8,65 @@
   </head>
   <body>
     <div class="app">
-      <div class="ambient" aria-hidden="true"></div>
+      <div class="ambient" aria-hidden="true">
+        <div class="ambient-space"></div>
+        <div class="ambient-scenes">
+          <img class="ambient-scene is-active" id="ambient-scene-a" src="../icons/wallpapers/wallpaper-scene-hologram.png" alt="" />
+          <img class="ambient-scene" id="ambient-scene-b" src="../icons/wallpapers/wallpaper-scene-arrival.png" alt="" />
+        </div>
+        <div class="ambient-veil"></div>
+      </div>
 
       <header class="top">
-        <div class="brand">
-          <div class="brand-mark-wrap">
-            <img class="brand-mark" src="../icons/logo.svg" width="44" height="44" alt="" />
+        <div class="top-left">
+          <div class="brand-mark-wrap" title="Omni Extractor">
+            <img class="brand-mark" src="../icons/logo.png" width="52" height="52" alt="Omni Extractor" />
           </div>
-          <div class="brand-text">
-            <p class="brand-kicker">Omni</p>
-            <h1>Extractor</h1>
+          <div class="tip-banner" id="tip-banner" aria-live="polite">
+            <div class="tip-visual is-hidden" id="tip-visual" aria-hidden="true">
+              <img class="tip-visual-soft" id="tip-visual-soft" alt="" />
+              <img class="tip-visual-focus" id="tip-visual-focus" alt="" />
+            </div>
+            <div class="tip-speech">
+              <p class="tip-text" id="tip-text"></p>
+              <span class="tip-caret" id="tip-caret" aria-hidden="true"></span>
+            </div>
           </div>
+        </div>
+        <div class="top-tools">
+          <button type="button" class="top-tool" id="btn-notify" title="Notifications" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Zm7-6.2V11a7 7 0 0 0-5-6.7V3.8a2 2 0 1 0-4 0v.5A7 7 0 0 0 5 11v4.8L3.4 17.4a1 1 0 0 0 .7 1.7h15.8a1 1 0 0 0 .7-1.7L19 15.8Z"/></svg>
+            <span class="notify-badge" id="notify-badge">3</span>
+          </button>
+          <button type="button" class="top-tool" id="btn-settings" title="Settings" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.1 12.9a7.4 7.4 0 0 0 .1-.9 7.4 7.4 0 0 0-.1-.9l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7 7 0 0 0-1.6-.9l-.4-2.5a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.5a7 7 0 0 0-1.6.9l-2.4-1a.5.5 0 0 0-.6.2L2.7 8.9a.5.5 0 0 0 .1.6l2 1.6a7.4 7.4 0 0 0-.1.9 7.4 7.4 0 0 0 .1.9l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3a.5.5 0 0 0 .6.2l2.4-1a7 7 0 0 0 1.6.9l.4 2.5a.5.5 0 0 0 .5.4h3.8a.5.5 0 0 0 .5-.4l.4-2.5a7 7 0 0 0 1.6-.9l2.4 1a.5.5 0 0 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6l-2-1.6ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
+          </button>
         </div>
       </header>
 
-      <nav class="nav" aria-label="Principal">
+      <div class="flyout is-hidden" id="notify-panel" role="dialog" aria-label="Notifications">
+        <div class="flyout-head">
+          <h2>Notifications</h2>
+          <button type="button" class="linkish" id="btn-notify-clear">Mark all read</button>
+        </div>
+        <ul class="flyout-list" id="notify-list"></ul>
+      </div>
+
+      <div class="flyout is-hidden" id="settings-panel" role="dialog" aria-label="Settings">
+        <div class="flyout-head">
+          <h2>Settings</h2>
+        </div>
+        <div class="settings-body">
+          <strong>Coming soon</strong>
+          Account, theme, and export preferences will land here. You can keep using Omni without signing in.
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Primary">
         <div class="nav-track" role="tablist">
           <button type="button" class="nav-btn is-active" data-nav="home" id="nav-home" role="tab" aria-selected="true">
             <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
-            <span>Menu</span>
+            <span>Home</span>
           </button>
           <button type="button" class="nav-btn" data-nav="data" id="nav-data" role="tab" aria-selected="false">
             <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5h16v3H4V5Zm0 5.5h16V14H4v-3.5ZM4 16h16v3H4v-3Z"/></svg>
@@ -42,9 +82,9 @@
       <main class="main">
         <section class="view is-visible" id="view-home" data-view="home">
           <div class="hero">
-            <p class="eyebrow">Ferramentas</p>
-            <h2 class="view-title">Extraia com precisão</h2>
-            <p class="view-lead">Começamos pelo List Extractor — listas, grids e tabelas viram datasets prontos para exportar.</p>
+            <p class="eyebrow">Tools</p>
+            <h2 class="view-title">Extract with precision</h2>
+            <p class="view-lead">Start with List Extractor — turn lists, grids, and tables into ready-to-export datasets.</p>
           </div>
 
           <button type="button" class="tool-card" id="open-list-extractor">
@@ -54,7 +94,7 @@
             </span>
             <span class="tool-card-body">
               <span class="tool-card-label">List Extractor</span>
-              <span class="tool-card-desc">Smart detection · scroll · paginação · carregar mais</span>
+              <span class="tool-card-desc">Blocks · full page · pages · filter</span>
             </span>
             <span class="tool-card-cta" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 6l6 6-6 6V6Z"/></svg>
@@ -62,133 +102,159 @@
           </button>
 
           <div class="coming-row" aria-hidden="true">
-            <div class="coming-chip">Texto · em breve</div>
-            <div class="coming-chip">Imagens · em breve</div>
-            <div class="coming-chip">Maps · em breve</div>
+            <div class="coming-chip">Text · soon</div>
+            <div class="coming-chip">Images · soon</div>
+            <div class="coming-chip">Maps · soon</div>
           </div>
         </section>
 
         <section class="view" id="view-list" data-view="list">
           <button type="button" class="back-link" id="back-home">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
-            Menu
+            Back to menu
           </button>
 
-          <div class="tool-head">
-            <div class="tool-badge">LISTAS</div>
+          <div class="tool-head tool-head-compact">
+            <div class="tool-badge">LISTS</div>
             <h2 class="tool-name">List Extractor</h2>
-            <p class="tool-sub">Selecione uma lista na página e escolha como carregar o restante.</p>
           </div>
 
           <div class="status-banner is-hidden" id="picker-banner">
             <span class="pulse"></span>
-            Passe o mouse na página e clique na lista · Esc cancela
+            <span id="picker-banner-text">Click blocks on the page · then Done</span>
           </div>
           <div class="status-banner is-hidden" id="button-banner">
             <span class="pulse"></span>
-            Clique no botão de paginação ou “carregar mais”
+            Click the Next / pagination control on the page
           </div>
 
-          <ol class="steps" id="list-steps">
-            <li class="step" id="step-select">
-              <div class="step-label">
-                <span class="step-num">1</span>
-                <span class="step-label-text">Selecionar lista</span>
-              </div>
+          <div id="list-workspace" class="list-workspace">
+            <div class="mode-rail" role="radiogroup" aria-label="Extraction mode">
+              <button type="button" class="mode-orb" data-mode="filter" role="radio" aria-checked="false" title="Filter by title">
+                <span class="mode-orb-ring" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h16l-6 7.5V19l-4 2v-8.5L4 5Z"/></svg>
+                </span>
+                <span class="mode-orb-label">Filter</span>
+              </button>
+              <button type="button" class="mode-orb is-selected" data-mode="blocks" role="radio" aria-checked="true" title="Blocks">
+                <span class="mode-orb-ring" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>
+                </span>
+                <span class="mode-orb-label">Blocks</span>
+              </button>
 
-              <div class="select-panel" id="select-idle">
-                <button type="button" class="select-cta" id="btn-select-list">
-                  <span class="select-ring" aria-hidden="true"></span>
-                  <span class="select-cta-icon" aria-hidden="true">
+              <div class="select-stage" id="select-stage">
+                <button type="button" class="focus-eye" id="btn-focus-eye" title="Highlight selection on page" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5c5.5 0 9.5 4.5 10.5 7-.9 2.4-4.8 7-10.5 7S2.5 14.4 1.5 12C2.5 9.5 6.5 5 12 5Zm0 2.5A4.5 4.5 0 1 0 12 16a4.5 4.5 0 0 0 0-8.5Zm0 2A2.5 2.5 0 1 1 12 14a2.5 2.5 0 0 1 0-5Z"/></svg>
+                </button>
+                <button type="button" class="select-core" id="btn-select-list">
+                  <span class="select-core-pulse" aria-hidden="true"></span>
+                  <span class="select-core-ico" aria-hidden="true">
                     <svg viewBox="0 0 48 48"><circle cx="22" cy="22" r="12" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M31 31 41 41" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                   </span>
-                  <span class="select-cta-title">Selecionar na página</span>
-                  <span class="select-cta-hint">Hover destaca a lista e mostra a contagem</span>
+                  <span class="select-core-title" id="select-core-title">Select</span>
+                  <span class="select-core-hint" id="select-core-hint">Tap to pick</span>
                 </button>
               </div>
 
-              <div class="select-panel select-done is-hidden" id="select-done">
-                <div class="select-done-row">
-                  <span class="badge badge-gold">Lista pronta</span>
-                  <span class="badge badge-green" id="item-count-badge">0 itens</span>
+              <button type="button" class="mode-orb" data-mode="full-page" role="radio" aria-checked="false" title="Full page">
+                <span class="mode-orb-ring" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 3h16v18H4V3Zm2 2v14h12V5H6Zm2 2h8v2H8V7Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z"/></svg>
+                </span>
+                <span class="mode-orb-label">Full page</span>
+              </button>
+              <button type="button" class="mode-orb" data-mode="pagination" role="radio" aria-checked="false" title="Pagination">
+                <span class="mode-orb-ring" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5h8v2H8V5Zm-3 5h14v8H5v-8Zm9 2v4h3v-4h-3Z"/></svg>
+                </span>
+                <span class="mode-orb-label">Pages</span>
+              </button>
+            </div>
+
+            <p class="mode-caption" id="mode-caption">Select one or more list blocks on the page.</p>
+
+            <div class="selection-tray" id="selection-tray">
+              <div class="tray-top">
+                <div class="tray-head" id="tray-head">
+                  <span class="tray-title" id="tray-title">Selection</span>
+                  <span class="tray-meta" id="tray-meta">Empty</span>
                 </div>
-                <p class="select-done-note" id="select-path"></p>
-                <button type="button" class="linkish" id="btn-reselect">Selecionar de novo</button>
+                <div class="tray-actions is-hidden" id="tray-actions">
+                  <button type="button" class="btn-crystal btn-done-compact" id="btn-done-blocks" disabled>Done</button>
+                  <button type="button" class="btn-crystal-ghost" id="btn-reselect">Clear</button>
+                </div>
               </div>
-            </li>
+              <ul class="block-chip-list" id="block-chip-list"></ul>
+              <div class="rescued-detail is-hidden" id="rescued-detail"></div>
+              <div class="preview-mosaic is-hidden" id="preview-mosaic"></div>
+              <p class="tray-empty" id="tray-empty">Nothing selected yet.</p>
+              <p class="tray-note is-hidden" id="no-select-hint">No picking needed — hit Start extraction.</p>
 
-            <li class="step is-dim" id="step-load">
-              <div class="step-label">
-                <span class="step-num">2</span>
-                <span class="step-label-text">Carregar mais itens</span>
+              <div class="filter-box is-hidden" id="filter-controls">
+                <label class="field-label" for="filter-tokens">Type a letter or word to match in titles</label>
+                <input
+                  type="text"
+                  id="filter-tokens"
+                  class="filter-input"
+                  placeholder="nintendo; sega; z"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <p class="hint" id="filter-hint">Single words or letters only · separate with <strong>;</strong></p>
+                <ul class="token-chip-list" id="token-chip-list"></ul>
               </div>
-              <div class="mode-list" role="radiogroup" aria-label="Modo de carregar mais">
-                <button type="button" class="mode-card is-selected" data-mode="auto-scroll" role="radio" aria-checked="true">
-                  <span class="mode-ico" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3v14m0 0-4-4m4 4 4-4M5 19h14"/></svg>
-                  </span>
-                  <span class="mode-copy">
-                    <span class="mode-title">Auto-Scroll</span>
-                    <span class="mode-desc">Rola até esgotar o scroll infinito</span>
-                  </span>
-                  <span class="mode-check" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="mode-card" data-mode="pagination" role="radio" aria-checked="false">
-                  <span class="mode-ico" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5h8v2H8V5Zm-3 5h14v8H5v-8Zm9 2v4h3v-4h-3Z"/></svg>
-                  </span>
-                  <span class="mode-copy">
-                    <span class="mode-title">Paginação</span>
-                    <span class="mode-desc">Avança páginas com o botão “próxima”</span>
-                  </span>
-                  <span class="mode-check" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="mode-card" data-mode="load-more" role="radio" aria-checked="false">
-                  <span class="mode-ico" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 11h10v2H7v-2Zm5-8 4 4h-3v4h-2V7H8l4-4Zm-4 14h8l-4 4-4-4Z"/></svg>
-                  </span>
-                  <span class="mode-copy">
-                    <span class="mode-title">Carregar mais</span>
-                    <span class="mode-desc">Clica “mostrar mais / load more”</span>
-                  </span>
-                  <span class="mode-check" aria-hidden="true"></span>
-                </button>
+            </div>
+
+            <div class="paradigm-extra is-hidden" id="pagination-controls">
+              <label class="field-label" for="page-limit">How many pages?</label>
+              <div class="page-limit-row">
+                <input type="number" id="page-limit" min="1" max="500" value="5" disabled />
+                <button type="button" class="chip-toggle is-active" id="btn-pages-all" aria-pressed="true">All</button>
               </div>
-              <button type="button" class="btn-secondary is-hidden" id="btn-pick-action">Selecionar botão na página</button>
+              <p class="hint">Each page becomes a dataset; we save a <strong>collection</strong> at the end.</p>
+              <button type="button" class="btn-secondary" id="btn-pick-action">Pick Next button (optional)</button>
               <p class="hint is-hidden" id="action-hint"></p>
-            </li>
-          </ol>
+            </div>
+          </div>
 
           <div class="complete-panel is-hidden" id="complete-panel">
             <div class="complete-orb" aria-hidden="true"></div>
-            <p class="complete-label">Extração concluída</p>
+            <p class="complete-label">Extraction complete</p>
             <p class="complete-count"><span id="complete-n">0</span></p>
-            <p class="complete-unit">itens extraídos</p>
+            <p class="complete-unit" id="complete-unit">items extracted</p>
             <div class="thumb-grid" id="thumb-grid"></div>
-            <button type="button" class="btn-primary" id="btn-view-data">Ver dados e exportar CSV</button>
-            <button type="button" class="linkish" id="btn-new-run">Nova extração</button>
+            <button type="button" class="btn-primary" id="btn-view-data">View data &amp; export CSV</button>
+            <button type="button" class="linkish" id="btn-new-run">New extraction</button>
           </div>
         </section>
 
         <section class="view" id="view-data" data-view="data">
+          <button type="button" class="back-link" id="back-from-data">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
+            Back to menu
+          </button>
           <div class="hero">
             <p class="eyebrow">Data</p>
-            <h2 class="view-title">Datasets locais</h2>
-            <p class="view-lead">Tudo fica no seu navegador até você exportar.</p>
+            <h2 class="view-title">Local datasets</h2>
+            <p class="view-lead">Everything stays in your browser until you export.</p>
           </div>
           <div id="dataset-list" class="dataset-list"></div>
-          <button type="button" class="btn-secondary" id="btn-open-table">Abrir tabela completa</button>
+          <button type="button" class="btn-secondary" id="btn-open-table">Open full table</button>
         </section>
 
         <section class="view" id="view-cloud" data-view="cloud">
+          <button type="button" class="back-link" id="back-from-cloud">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
+            Back to menu
+          </button>
           <div class="hero">
             <p class="eyebrow">Cloud</p>
-            <h2 class="view-title">Nuvem Omni</h2>
-            <p class="view-lead">Sincronizar e manipular datasets remotos será plano pago.</p>
+            <h2 class="view-title">Omni Cloud</h2>
+            <p class="view-lead">Syncing and remote dataset tools will be a paid plan.</p>
           </div>
           <div class="empty-card">
-            <strong>Em breve</strong>
-            <span>Placeholder — sem cobrança enquanto estiver local.</span>
+            <strong>Coming soon</strong>
+            <span>Placeholder — free while everything stays local.</span>
           </div>
         </section>
       </main>
@@ -197,14 +263,25 @@
         <div class="progress is-hidden" id="progress-box">
           <div class="progress-bar"><span id="progress-fill"></span></div>
           <div class="progress-row">
-            <span>Extraindo</span>
+            <span>Extracting</span>
             <strong id="progress-count">0</strong>
           </div>
-          <button type="button" class="linkish" id="btn-stop">Parar</button>
+          <button type="button" class="linkish" id="btn-stop">Stop</button>
         </div>
-        <button type="button" class="btn-primary" id="btn-start" disabled>
-          <span>Iniciar extração</span>
-        </button>
+        <div class="foot-actions">
+          <button type="button" class="btn-primary btn-crystal" id="btn-start" disabled>
+            <span>Start extraction</span>
+          </button>
+          <button type="button" class="foot-side-btn" id="btn-foot-data" title="Data">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5h16v3H4V5Zm0 5.5h16V14H4v-3.5ZM4 16h16v3H4v-3Z"/></svg>
+            <span>Data</span>
+            <span class="foot-badge is-hidden" id="data-badge">0</span>
+          </button>
+          <button type="button" class="foot-side-btn is-idle" id="btn-foot-cloud" title="Cloud (soon)" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.5 18a4.5 4.5 0 0 1-.3-9 6 6 0 0 1 11.6 1.6A3.8 3.8 0 0 1 18.2 18H7.5Z"/></svg>
+            <span>Cloud</span>
+          </button>
+        </div>
       </footer>
     </div>
     <script src="app.js"></script>
