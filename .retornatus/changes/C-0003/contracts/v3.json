@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "change_id": "C-0003",
+  "version": 3,
+  "what": "Polish List Extractor: circular mode triad, center select CTA, selection tray; entire extension UI and code strings in English.",
+  "constraints": [
+    "Chat may stay PT-BR; product artifacts English."
+  ],
+  "done_criteria": [
+    "List view uses 3 circular mode buttons + center select + selection box; all user-facing and code strings English; polished motion/tokens; extension 0.6.0."
+  ],
+  "active": true,
+  "activated_at": "2026-09-23T02:09:08.463414Z"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "C-0004/A-001",
+  "origin_kind": "CONTRACT",
+  "origin_ref": "contract@v1",
+  "objective": "Steel/gold palette, new mark, tip slides, notify+settings UI shells",
+  "scope": null,
+  "constraints": [],
+  "success_conditions": [
+    "New palette visible; tips rotate 5s; notify list opens; settings placeholder; no forced login"
+  ],
+  "authority": {
+    "schema_version": 1,
+    "category": "DELEGATED",
+    "rationale": "routine"
+  },
+  "tasks": [],
+  "relations": []
+}

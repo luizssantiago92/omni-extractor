@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "C-0003/E-002",
+  "type": "test_result",
+  "subject": "Mode-first 3 paradigms + multi-block",
+  "source": "extension v0.5.0 sidepanel+list-extractor OMNI_VERSION=6",
+  "producer": "agent",
+  "observed_at": "2026-09-23T01:58:41.116027Z",
+  "subject_state": "commit:b6087197c3fb900064a10f7fff13d388a4a0a10f",
+  "relations": [
+    {
+      "type": "SUPPORTS",
+      "target_id": "A-001",
+      "note": null
+    },
+    {
+      "type": "SUPPORTS",
+      "target_id": "claim-done-1",
+      "note": null
+    }
+  ]
+}

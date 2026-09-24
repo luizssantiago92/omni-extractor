@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "C-0003/E-001",
+  "type": "test_result",
+  "subject": "Four paradigms UI+engine",
+  "source": "extension/sidepanel + content/list-extractor.js v0.4.0",
+  "producer": "agent",
+  "observed_at": "2026-09-23T01:36:31.449044Z",
+  "subject_state": null,
+  "relations": [
+    {
+      "type": "SUPPORTS",
+      "target_id": "A-001",
+      "note": null
+    },
+    {
+      "type": "SUPPORTS",
+      "target_id": "claim-done-1",
+      "note": null
+    }
+  ]
+}

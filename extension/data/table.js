@@ -7,10 +7,10 @@
   const grid = document.getElementById("grid");
 
   const COLUMNS = [
-    { key: "image", label: "Imagem" },
-    { key: "title", label: "Título" },
-    { key: "description", label: "Descrição" },
-    { key: "price", label: "Preço" },
+    { key: "image", label: "Image" },
+    { key: "title", label: "Title" },
+    { key: "description", label: "Description" },
+    { key: "price", label: "Price" },
     { key: "url", label: "URL" },
   ];
 
@@ -25,12 +25,20 @@
       .replaceAll('"', "&quot;");
   }
 
-  function render() {
+  function resolveActive(preferredId) {
+    if (preferredId && datasets.some((d) => d.id === preferredId)) {
+      return datasets.find((d) => d.id === preferredId);
+    }
+    return datasets[0] || null;
+  }
+
+  function render(preferredId) {
     select.innerHTML = "";
     if (!datasets.length) {
       grid.classList.add("is-hidden");
       empty.classList.remove("is-hidden");
       rowMeta.textContent = "";
+      active = null;
       return;
     }
     empty.classList.add("is-hidden");
@@ -39,13 +47,15 @@
     datasets.forEach((ds) => {
       const opt = document.createElement("option");
       opt.value = ds.id;
-      opt.textContent = `${ds.title} (${ds.rows?.length || 0})`;
+      const pageBit = ds.pageIndex ? ` · p.${ds.pageIndex}` : "";
+      opt.textContent = `${ds.title} (${ds.rows?.length || 0}${pageBit})`;
       select.appendChild(opt);
     });
 
-    active = datasets.find((d) => d.id === select.value) || datasets[0];
+    active = resolveActive(preferredId ?? select.value);
+    if (!active) return;
     select.value = active.id;
-    rowMeta.textContent = `${active.rows?.length || 0} linhas · ${new Date(active.createdAt).toLocaleString()}`;
+    rowMeta.textContent = `${active.rows?.length || 0} rows · ${new Date(active.createdAt).toLocaleString()}`;
 
     thead.innerHTML = `<tr><th>#</th>${COLUMNS.map((c) => `<th>${c.label}</th>`).join("")}</tr>`;
     tbody.innerHTML = "";
@@ -82,8 +92,7 @@
 
   select.addEventListener("change", async () => {
     await chrome.storage.local.set({ activeDatasetId: select.value });
-    active = datasets.find((d) => d.id === select.value) || null;
-    render();
+    render(select.value);
   });
 
   document.getElementById("btn-export").addEventListener("click", () => {
@@ -99,16 +108,6 @@
 
   chrome.storage.local.get(["datasets", "activeDatasetId"]).then((stored) => {
     datasets = stored.datasets || [];
-    if (stored.activeDatasetId) {
-      const exists = datasets.some((d) => d.id === stored.activeDatasetId);
-      if (exists) {
-        // force select after render options
-        setTimeout(() => {
-          select.value = stored.activeDatasetId;
-          render();
-        }, 0);
-      }
-    }
-    render();
+    render(stored.activeDatasetId || null);
   });
 })();

@@ -7,3 +7,13 @@ dist/
 *.pem
 *.crx
 *.zip
+
+# Local / generated noise
+extension/icons/frames/
+extension/icons/choices/
+extension/icons/_build_animated_mascot.py
+extension/icons/logo-animated.webp
+*.tmp
+.tmp_*
+_extract_*.py
+_notif_snip.txt
