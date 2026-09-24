@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "C-0003/E-004",
+  "type": "test_result",
+  "subject": "Filter mode title tokens v0.8.0",
+  "source": "extension filter mode + side orbit UI",
+  "producer": "agent",
+  "observed_at": "2026-09-23T02:49:03.111363Z",
+  "subject_state": "commit:b6087197c3fb900064a10f7fff13d388a4a0a10f",
+  "relations": [
+    {
+      "type": "SUPPORTS",
+      "target_id": "A-001",
+      "note": null
+    },
+    {
+      "type": "SUPPORTS",
+      "target_id": "claim-done-1",
+      "note": null
+    }
+  ]
+}

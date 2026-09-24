@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "change_id": "C-0003",
+  "version": 1,
+  "what": "Replace load-more triad with 4 paradigms: (1) block select default (2) all items currently on page (3) page + load-more expansion (4) pagination with page limit or all, one dataset per page saved as a collection.",
+  "constraints": [],
+  "done_criteria": [
+    "UI exposes 4 paradigms; block is default; whole-page extracts all loaded matching items; load-more auto-discovers and expands; pagination respects page count/all and writes one dataset per page plus a collection"
+  ],
+  "active": true,
+  "activated_at": "2026-09-23T01:04:45.636775Z"
+}

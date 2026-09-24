@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "change_id": "C-0003",
+  "version": 4,
+  "what": "Add Filter mode: title match by word/letter (multi via ;); no phrases. Keep Blocks, Full page, Pages. Compact side-orbit layout.",
+  "constraints": [
+    "Tokens only (letter or word); semicolon-separated; case-insensitive title contains."
+  ],
+  "done_criteria": [
+    "Four modes; Filter validates single tokens; extracts matching titles from dominant list (+load-more); English UI; extension 0.8.0."
+  ],
+  "active": true,
+  "activated_at": "2026-09-23T02:46:37.022934Z"
+}
