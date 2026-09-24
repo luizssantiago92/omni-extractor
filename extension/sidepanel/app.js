@@ -271,6 +271,7 @@
       name !== "list" || !els.completePanel.classList.contains("is-hidden");
     if (name === "data") renderDatasets();
     renderListState();
+    if (typeof onTipContextChanged === "function") onTipContextChanged();
   }
 
   function renderBlockChips() {
@@ -450,26 +451,39 @@
 
     els.modeCaption.textContent = MODE_COPY[state.mode] || "";
 
-    els.selectStage.classList.toggle("is-passive", !needsPick);
-    els.btnSelectList.disabled = !needsPick || state.extracting;
-    els.btnSelectList.classList.toggle("is-picking", state.picking);
+    els.selectStage.classList.toggle("is-guide", !needsPick);
+    els.selectStage.classList.remove("is-passive");
+    els.btnSelectList.disabled = state.extracting;
+    els.btnSelectList.classList.toggle("is-picking", isBlocks && state.picking);
     els.btnSelectList.classList.toggle("is-ready", isBlocks && state.selectionDone);
+    els.btnSelectList.classList.toggle("is-guide", !needsPick);
+    els.btnSelectList.setAttribute(
+      "aria-pressed",
+      isBlocks && state.picking ? "true" : "false"
+    );
 
-    if (isFilter) {
-      els.selectCoreTitle.textContent = "Filter";
-      els.selectCoreHint.textContent = "Enter terms below";
-    } else if (!needsPick) {
+    if (!needsPick) {
       els.selectCoreTitle.textContent = "Ready";
-      els.selectCoreHint.textContent = "No pick required";
+      if (isFilter) {
+        els.selectCoreHint.textContent = "Set filter · then Start";
+      } else if (state.mode === "pagination") {
+        els.selectCoreHint.textContent = "Just hit Start below";
+      } else {
+        els.selectCoreHint.textContent = "Just hit Start below";
+      }
+      els.btnSelectList.title = "No page pick needed — use Start extraction";
     } else if (state.picking) {
-      els.selectCoreTitle.textContent = "Picking…";
-      els.selectCoreHint.textContent = "Click blocks, then Done";
+      els.selectCoreTitle.textContent = "Cancel";
+      els.selectCoreHint.textContent = "Tap to stop picking";
+      els.btnSelectList.title = "Cancel selection";
     } else if (state.selectionDone) {
       els.selectCoreTitle.textContent = "Selected";
       els.selectCoreHint.textContent = "Start when ready";
+      els.btnSelectList.title = "Selection locked — tap to pick more";
     } else {
       els.selectCoreTitle.textContent = "Select";
       els.selectCoreHint.textContent = "Tap to pick";
+      els.btnSelectList.title = "Select list blocks on the page";
     }
 
     const showChips = isBlocks && nBlocks > 0;
@@ -575,7 +589,8 @@
 
   function setMode(mode) {
     const next = mode || "blocks";
-    if (next !== state.mode) {
+    const modeChanged = next !== state.mode;
+    if (modeChanged) {
       setFocusMode(false).catch(() => {});
       resetBlockSelection();
       sendToTab({ type: "OMNI_CANCEL_PICKER" }).catch(() => {});
@@ -589,6 +604,7 @@
       btn.setAttribute("aria-checked", on ? "true" : "false");
     });
     renderListState();
+    if (modeChanged && typeof onTipContextChanged === "function") onTipContextChanged();
   }
 
   function showComplete(count, thumbs, pageCount = 0) {
@@ -731,36 +747,70 @@
       .replaceAll('"', "&quot;");
   }
 
-  const LIST_TIPS = [
-    {
-      text: "Hey — tap Select, click the lists on the page, then Done to lock them in.",
-      image: "../icons/tips/tip-select.png",
-    },
-    {
-      text: "Need more blocks? Tap Locked to unlock, pick again, then Done.",
-      image: "../icons/tips/tip-done.png",
-    },
-    {
-      text: "Start stays off until your selection is Locked — I wait with you.",
-    },
-    {
-      text: "Peek with the eye next to Select — I spotlight what you picked.",
-      image: "../icons/tips/tip-eye.png",
-    },
-    {
-      text: "Filter keeps titles that match your words. Separate terms with ;",
-      image: "../icons/tips/tip-filter.png",
-    },
-    {
-      text: "Full page grabs the main list and keeps loading more as the page grows.",
-    },
-    {
-      text: "Pages walks Next for you — set a limit or take them all.",
-    },
-    {
-      text: "Open Data anytime to review saved sets and export CSV.",
-    },
-  ];
+  const TIP_POOLS = {
+    home: [
+      { text: "Hey captain — open List Extractor when you’re ready to pull lists from this page." },
+      { text: "Data keeps your saved sets local. Tap me anytime if you want another tip." },
+      { text: "Cloud sync is coming later. For now, extract freely — no account needed." },
+    ],
+    list: [
+      {
+        text: "Tap Select, click lists on the page, then Done to lock them in.",
+        image: "../icons/tips/tip-select.png",
+      },
+      {
+        text: "Need more blocks? Tap Locked to unlock, pick again, then Done.",
+        image: "../icons/tips/tip-done.png",
+      },
+      { text: "Start stays off until your selection is Locked — I wait with you." },
+      {
+        text: "Peek with the eye by Select — I spotlight what you picked.",
+        image: "../icons/tips/tip-eye.png",
+      },
+    ],
+    "list:blocks": [
+      {
+        text: "Blocks mode: pick one or more list regions, then lock with Done.",
+        image: "../icons/tips/tip-select.png",
+      },
+      {
+        text: "While Locked, Start is ready. Unlock anytime to add more blocks.",
+        image: "../icons/tips/tip-done.png",
+      },
+      {
+        text: "Use the eye to dim the page and focus your selection.",
+        image: "../icons/tips/tip-eye.png",
+      },
+    ],
+    "list:filter": [
+      {
+        text: "Filter keeps titles that match your words. Separate terms with ;",
+        image: "../icons/tips/tip-filter.png",
+      },
+      { text: "Single words or letters only — no spaces inside a term." },
+      { text: "When your tokens look good, hit Start — no page picking needed." },
+    ],
+    "list:full-page": [
+      { text: "Full page finds the main list and keeps loading more as the page grows." },
+      { text: "Great for infinite scroll — sit back while I gather items." },
+      { text: "After extraction, open Data to review and export CSV." },
+    ],
+    "list:pagination": [
+      { text: "Pages walks Next for you — set a limit or take them all." },
+      { text: "Optional: pick the Next button so I know where to click." },
+      { text: "Each page becomes a dataset inside one collection." },
+    ],
+    data: [
+      { text: "Tap a dataset or collection to open the full table." },
+      { text: "Export CSV from the table whenever you need a file." },
+      { text: "Everything here stays in your browser until you clear it." },
+    ],
+    cloud: [
+      { text: "Cloud is on the roadmap — extract locally for now." },
+      { text: "When sync lands, it’ll be optional. You’re the captain." },
+      { text: "Need a tip? Tap me and I’ll keep talking." },
+    ],
+  };
 
   const tipEls = {
     banner: document.getElementById("tip-banner"),
@@ -769,12 +819,15 @@
     visual: document.getElementById("tip-visual"),
     visualSoft: document.getElementById("tip-visual-soft"),
     visualFocus: document.getElementById("tip-visual-focus"),
+    mascot: document.getElementById("btn-mascot-tip"),
   };
 
   let tipIndex = 0;
   let tipGeneration = 0;
   let tipTypeTimer = null;
   let tipHoldTimer = null;
+  let tipBusy = false;
+  let tipContextKey = null;
 
   function clearTipTimers() {
     if (tipTypeTimer) {
@@ -787,9 +840,26 @@
     }
   }
 
+  function currentTipPool() {
+    if (state.view === "list") {
+      const keyed = TIP_POOLS[`list:${state.mode}`];
+      if (keyed?.length) return keyed;
+      return TIP_POOLS.list;
+    }
+    return TIP_POOLS[state.view] || TIP_POOLS.home;
+  }
+
+  function tipContextSignature() {
+    return state.view === "list" ? `list:${state.mode}` : state.view;
+  }
+
+  function setTipEmpty(empty) {
+    tipEls.banner?.classList.toggle("is-empty", !!empty);
+  }
+
   function showTipVisual(tip) {
     if (!tipEls.visual || !tipEls.visualSoft || !tipEls.visualFocus) return;
-    if (tip.image) {
+    if (tip?.image) {
       tipEls.visualSoft.src = tip.image;
       tipEls.visualFocus.src = tip.image;
       tipEls.visual.classList.remove("is-hidden");
@@ -811,7 +881,7 @@
       tipEls.text.textContent = "";
       tipEls.caret.classList.remove("is-done");
       let i = 0;
-      const stepMs = 28;
+      const stepMs = 26;
 
       const tick = () => {
         if (generation !== tipGeneration) {
@@ -833,34 +903,83 @@
 
   function holdTip(ms, generation) {
     return new Promise((resolve) => {
-      tipHoldTimer = setTimeout(() => {
-        resolve();
-      }, ms);
+      tipHoldTimer = setTimeout(() => resolve(), ms);
     });
   }
 
-  async function playCurrentTip(generation) {
-    const tip = LIST_TIPS[tipIndex];
-    if (!tip) return;
+  function hideTipBubble() {
+    if (tipEls.text) tipEls.text.textContent = "";
+    tipEls.caret?.classList.add("is-done");
+    showTipVisual(null);
+    setTipEmpty(true);
+  }
+
+  async function speakTip(tip, generation, { dwellMs = 2200 } = {}) {
+    if (!tip || generation !== tipGeneration) return;
+    setTipEmpty(false);
     showTipVisual(tip);
     await typeTipText(tip.text, generation);
     if (generation !== tipGeneration) return;
-    await holdTip(4000, generation);
+    await holdTip(dwellMs, generation);
+    if (generation !== tipGeneration) return;
+    hideTipBubble();
   }
 
-  async function startTipCycle() {
+  /** Auto burst: up to 3 tips, then keep slot empty (layout reserved). */
+  async function runTipBurst(count = 3) {
     const generation = ++tipGeneration;
     clearTipTimers();
-    while (generation === tipGeneration) {
-      await playCurrentTip(generation);
+    tipBusy = true;
+    tipContextKey = tipContextSignature();
+    try {
+      const pool = currentTipPool();
+      if (!pool.length) {
+        hideTipBubble();
+        return;
+      }
+      for (let n = 0; n < count; n += 1) {
+        if (generation !== tipGeneration) return;
+        const tip = pool[tipIndex % pool.length];
+        tipIndex = (tipIndex + 1) % pool.length;
+        await speakTip(tip, generation, { dwellMs: 1800 });
+        if (generation !== tipGeneration) return;
+        if (n < count - 1) await holdTip(280, generation);
+      }
       if (generation !== tipGeneration) return;
-      tipIndex = (tipIndex + 1) % LIST_TIPS.length;
+      hideTipBubble();
+    } finally {
+      if (generation === tipGeneration) tipBusy = false;
     }
   }
 
-  if (tipEls.text) {
-    startTipCycle();
+  /** Single tip on mascot click — interrupts any burst, then stops. */
+  async function speakOneTipFromMascot() {
+    const generation = ++tipGeneration;
+    clearTipTimers();
+    tipBusy = true;
+    tipContextKey = tipContextSignature();
+    try {
+      const pool = currentTipPool();
+      if (!pool.length) return;
+      const tip = pool[tipIndex % pool.length];
+      tipIndex = (tipIndex + 1) % pool.length;
+      await speakTip(tip, generation, { dwellMs: 2400 });
+    } finally {
+      if (generation === tipGeneration) tipBusy = false;
+    }
   }
+
+  function onTipContextChanged() {
+    const next = tipContextSignature();
+    if (next === tipContextKey) return;
+    tipIndex = 0;
+    runTipBurst(3);
+  }
+
+  tipEls.mascot?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    speakOneTipFromMascot();
+  });
 
   const NOTICES = [
     {
@@ -1000,7 +1119,29 @@
   }
 
   els.btnSelectList.addEventListener("click", async () => {
-    if (state.mode !== "blocks") return;
+    if (state.extracting) return;
+
+    // Filter / Full page / Pages — guide only: nudge toward Start
+    if (state.mode !== "blocks") {
+      els.btnStart?.focus();
+      els.btnStart?.classList.add("is-nudge");
+      window.setTimeout(() => els.btnStart?.classList.remove("is-nudge"), 900);
+      return;
+    }
+
+    // Blocks: second click while picking cancels selection mode
+    if (state.picking) {
+      state.picking = false;
+      els.pickerBanner.classList.add("is-hidden");
+      renderListState();
+      try {
+        await sendToTab({ type: "OMNI_CANCEL_PICKER" });
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+
     try {
       const keep = state.selections.length > 0;
       state.picking = true;
