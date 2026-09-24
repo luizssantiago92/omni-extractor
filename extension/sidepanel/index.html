@@ -19,48 +19,52 @@
 
       <header class="top">
         <div class="top-left">
-          <div class="brand-mark-wrap" title="Omni Extractor">
-            <img class="brand-mark" src="../icons/logo.png" width="52" height="52" alt="Omni Extractor" />
-          </div>
-          <div class="tip-banner" id="tip-banner" aria-live="polite">
-            <div class="tip-visual is-hidden" id="tip-visual" aria-hidden="true">
-              <img class="tip-visual-soft" id="tip-visual-soft" alt="" />
-              <img class="tip-visual-focus" id="tip-visual-focus" alt="" />
-            </div>
-            <div class="tip-speech">
-              <p class="tip-text" id="tip-text"></p>
-              <span class="tip-caret" id="tip-caret" aria-hidden="true"></span>
+          <button type="button" class="brand-mark-wrap" id="btn-mascot-tip" title="Ask the captain for a tip" aria-label="Ask Omni mascot for a tip">
+            <img class="brand-mark" src="../icons/logo.png" width="52" height="52" alt="" />
+          </button>
+          <div class="tip-slot" id="tip-slot">
+            <div class="tip-banner is-empty" id="tip-banner" aria-live="polite">
+              <div class="tip-visual is-hidden" id="tip-visual" aria-hidden="true">
+                <img class="tip-visual-soft" id="tip-visual-soft" alt="" />
+                <img class="tip-visual-focus" id="tip-visual-focus" alt="" />
+              </div>
+              <div class="tip-speech">
+                <p class="tip-text" id="tip-text"></p>
+                <span class="tip-caret" id="tip-caret" aria-hidden="true"></span>
+              </div>
             </div>
           </div>
         </div>
         <div class="top-tools">
-          <button type="button" class="top-tool" id="btn-notify" title="Notifications" aria-expanded="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Zm7-6.2V11a7 7 0 0 0-5-6.7V3.8a2 2 0 1 0-4 0v.5A7 7 0 0 0 5 11v4.8L3.4 17.4a1 1 0 0 0 .7 1.7h15.8a1 1 0 0 0 .7-1.7L19 15.8Z"/></svg>
-            <span class="notify-badge" id="notify-badge">3</span>
-          </button>
-          <button type="button" class="top-tool" id="btn-settings" title="Settings" aria-expanded="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.1 12.9a7.4 7.4 0 0 0 .1-.9 7.4 7.4 0 0 0-.1-.9l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7 7 0 0 0-1.6-.9l-.4-2.5a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.5a7 7 0 0 0-1.6.9l-2.4-1a.5.5 0 0 0-.6.2L2.7 8.9a.5.5 0 0 0 .1.6l2 1.6a7.4 7.4 0 0 0-.1.9 7.4 7.4 0 0 0 .1.9l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3a.5.5 0 0 0 .6.2l2.4-1a7 7 0 0 0 1.6.9l.4 2.5a.5.5 0 0 0 .5.4h3.8a.5.5 0 0 0 .5-.4l.4-2.5a7 7 0 0 0 1.6-.9l2.4 1a.5.5 0 0 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6l-2-1.6ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
-          </button>
+          <div class="top-tool-wrap">
+            <button type="button" class="top-tool" id="btn-notify" title="Notifications" aria-expanded="false" aria-controls="notify-panel">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Zm7-6.2V11a7 7 0 0 0-5-6.7V3.8a2 2 0 1 0-4 0v.5A7 7 0 0 0 5 11v4.8L3.4 17.4a1 1 0 0 0 .7 1.7h15.8a1 1 0 0 0 .7-1.7L19 15.8Z"/></svg>
+              <span class="notify-badge" id="notify-badge">3</span>
+            </button>
+            <div class="flyout flyout-menu is-hidden" id="notify-panel" role="dialog" aria-label="Notifications">
+              <div class="flyout-head">
+                <h2>Notifications</h2>
+                <button type="button" class="linkish" id="btn-notify-clear">Mark all read</button>
+              </div>
+              <ul class="flyout-list" id="notify-list"></ul>
+            </div>
+          </div>
+          <div class="top-tool-wrap">
+            <button type="button" class="top-tool" id="btn-settings" title="Settings" aria-expanded="false" aria-controls="settings-panel">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.1 12.9a7.4 7.4 0 0 0 .1-.9 7.4 7.4 0 0 0-.1-.9l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7 7 0 0 0-1.6-.9l-.4-2.5a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.5a7 7 0 0 0-1.6.9l-2.4-1a.5.5 0 0 0-.6.2L2.7 8.9a.5.5 0 0 0 .1.6l2 1.6a7.4 7.4 0 0 0-.1.9 7.4 7.4 0 0 0 .1.9l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3a.5.5 0 0 0 .6.2l2.4-1a7 7 0 0 0 1.6.9l.4 2.5a.5.5 0 0 0 .5.4h3.8a.5.5 0 0 0 .5-.4l.4-2.5a7 7 0 0 0 1.6-.9l2.4 1a.5.5 0 0 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6l-2-1.6ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
+            </button>
+            <div class="flyout flyout-menu is-hidden" id="settings-panel" role="dialog" aria-label="Settings">
+              <div class="flyout-head">
+                <h2>Settings</h2>
+              </div>
+              <div class="settings-body">
+                <strong>Coming soon</strong>
+                Account, theme, and export preferences will land here. You can keep using Omni without signing in.
+              </div>
+            </div>
+          </div>
         </div>
       </header>
-
-      <div class="flyout is-hidden" id="notify-panel" role="dialog" aria-label="Notifications">
-        <div class="flyout-head">
-          <h2>Notifications</h2>
-          <button type="button" class="linkish" id="btn-notify-clear">Mark all read</button>
-        </div>
-        <ul class="flyout-list" id="notify-list"></ul>
-      </div>
-
-      <div class="flyout is-hidden" id="settings-panel" role="dialog" aria-label="Settings">
-        <div class="flyout-head">
-          <h2>Settings</h2>
-        </div>
-        <div class="settings-body">
-          <strong>Coming soon</strong>
-          Account, theme, and export preferences will land here. You can keep using Omni without signing in.
-        </div>
-      </div>
 
       <nav class="nav" aria-label="Primary">
         <div class="nav-track" role="tablist">
@@ -147,7 +151,7 @@
                 <button type="button" class="focus-eye" id="btn-focus-eye" title="Highlight selection on page" aria-pressed="false">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5c5.5 0 9.5 4.5 10.5 7-.9 2.4-4.8 7-10.5 7S2.5 14.4 1.5 12C2.5 9.5 6.5 5 12 5Zm0 2.5A4.5 4.5 0 1 0 12 16a4.5 4.5 0 0 0 0-8.5Zm0 2A2.5 2.5 0 1 1 12 14a2.5 2.5 0 0 1 0-5Z"/></svg>
                 </button>
-                <button type="button" class="select-core" id="btn-select-list">
+                <button type="button" class="select-core" id="btn-select-list" title="Select list blocks on the page" aria-pressed="false">
                   <span class="select-core-pulse" aria-hidden="true"></span>
                   <span class="select-core-ico" aria-hidden="true">
                     <svg viewBox="0 0 48 48"><circle cx="22" cy="22" r="12" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M31 31 41 41" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
