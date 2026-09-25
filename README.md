@@ -216,6 +216,7 @@ Conventions:
 - **Account**: Google sign-in in Chrome
 - **Cloud**: optional sync and remote dataset tools
 - More extractors beyond lists
+- MIT license at the first stable release
 
 ---
 
@@ -225,4 +226,4 @@ Brand, mascot, and product design by the Omni Extractor team. Governance workflo
 
 ## License
 
-No license has been published yet. All rights reserved until a `LICENSE` file is added.
+The project is in its early releases and no license has been published yet. It will be released under the **MIT** license once it reaches a stable version.

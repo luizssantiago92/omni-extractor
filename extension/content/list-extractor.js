@@ -1,5 +1,5 @@
 (() => {
-  const OMNI_VERSION = 12;
+  const OMNI_VERSION = 13;
   if (window.__omniListExtractorVersion === OMNI_VERSION) return;
   if (typeof window.__omniListExtractorCleanup === "function") {
     try {
@@ -27,6 +27,7 @@
   let itemOutlineRoot = null;
   let tooltipEl = null;
   let focusRoot = null;
+  let focusRelayout = null;
   let currentCandidate = null;
   let selection = null;
   let selections = [];
@@ -94,6 +95,11 @@
       focusRoot.remove();
       focusRoot = null;
     }
+    if (focusRelayout) {
+      window.removeEventListener("scroll", focusRelayout, true);
+      window.removeEventListener("resize", focusRelayout);
+      focusRelayout = null;
+    }
   }
 
   function resolveSelectionEl(sel) {
@@ -109,20 +115,16 @@
     clearFocusMode();
     if (!on) return;
     const list = Array.isArray(sels) && sels.length ? sels : activeSelections();
-    const rects = [];
+    const targets = [];
     for (const sel of list) {
-      const el = resolveSelectionEl(sel);
-      if (!el) continue;
-      const r = el.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) continue;
-      rects.push({
-        x: Math.max(0, r.left),
-        y: Math.max(0, r.top),
-        w: Math.min(window.innerWidth - Math.max(0, r.left), r.width),
-        h: Math.min(window.innerHeight - Math.max(0, r.top), r.height),
-      });
+      const items = queryItems(sel, "block");
+      if (items.length) targets.push(...items);
+      else {
+        const el = resolveSelectionEl(sel);
+        if (el) targets.push(el);
+      }
     }
-    if (!rects.length) return;
+    if (!targets.length) return;
 
     focusRoot = document.createElement("div");
     focusRoot.id = "omni-focus-root";
@@ -149,16 +151,8 @@
     full.setAttribute("height", "100%");
     full.setAttribute("fill", "white");
     mask.appendChild(full);
-    for (const r of rects) {
-      const hole = document.createElementNS(ns, "rect");
-      hole.setAttribute("x", String(r.x));
-      hole.setAttribute("y", String(r.y));
-      hole.setAttribute("width", String(r.w));
-      hole.setAttribute("height", String(r.h));
-      hole.setAttribute("rx", "10");
-      hole.setAttribute("fill", "black");
-      mask.appendChild(hole);
-    }
+    const holes = document.createElementNS(ns, "g");
+    mask.appendChild(holes);
     defs.appendChild(mask);
     svg.appendChild(defs);
 
@@ -167,27 +161,65 @@
     dim.setAttribute("y", "0");
     dim.setAttribute("width", "100%");
     dim.setAttribute("height", "100%");
-    dim.setAttribute("fill", "rgba(4, 10, 8, 0.78)");
+    dim.setAttribute("fill", "rgba(38, 40, 46, 0.72)");
     dim.setAttribute("mask", "url(#omni-focus-mask)");
     svg.appendChild(dim);
     focusRoot.appendChild(svg);
 
-    for (const r of rects) {
-      const ring = document.createElement("div");
-      Object.assign(ring.style, {
-        position: "fixed",
-        left: `${r.x}px`,
-        top: `${r.y}px`,
-        width: `${r.w}px`,
-        height: `${r.h}px`,
-        borderRadius: "10px",
-        border: `2px solid ${GOLD}`,
-        boxShadow: `0 0 0 1px rgba(34,140,90,0.5), 0 0 24px rgba(212,175,55,0.45)`,
-        pointerEvents: "none",
+    const rings = document.createElement("div");
+    focusRoot.appendChild(rings);
+
+    const layout = () => {
+      if (!focusRoot) return;
+      holes.replaceChildren();
+      rings.replaceChildren();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      for (const el of targets) {
+        if (!el.isConnected) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) continue;
+        if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) continue;
+        const hole = document.createElementNS(ns, "rect");
+        hole.setAttribute("x", String(r.left));
+        hole.setAttribute("y", String(r.top));
+        hole.setAttribute("width", String(r.width));
+        hole.setAttribute("height", String(r.height));
+        hole.setAttribute("rx", "6");
+        hole.setAttribute("fill", "black");
+        holes.appendChild(hole);
+
+        const ring = document.createElement("div");
+        Object.assign(ring.style, {
+          position: "fixed",
+          left: `${r.left}px`,
+          top: `${r.top}px`,
+          width: `${r.width}px`,
+          height: `${r.height}px`,
+          borderRadius: "6px",
+          border: `1.5px solid ${GOLD}`,
+          boxSizing: "border-box",
+          boxShadow: "0 0 14px rgba(212,175,55,0.35)",
+          pointerEvents: "none",
+        });
+        rings.appendChild(ring);
+      }
+    };
+
+    let queued = false;
+    focusRelayout = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        layout();
       });
-      focusRoot.appendChild(ring);
-    }
+    };
+    window.addEventListener("scroll", focusRelayout, true);
+    window.addEventListener("resize", focusRelayout);
+
     document.documentElement.appendChild(focusRoot);
+    layout();
   }
 
   function paintAllSelections(label) {

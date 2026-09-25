@@ -230,7 +230,7 @@
   async function ensureContentScript(tabId) {
     try {
       const ping = await chrome.tabs.sendMessage(tabId, { type: "OMNI_PING" });
-      if (!ping?.ok || (ping.version && ping.version < 12)) {
+      if (!ping?.ok || (ping.version && ping.version < 13)) {
         await chrome.scripting.executeScript({
           target: { tabId },
           files: ["content/list-extractor.js"],
