@@ -38,6 +38,20 @@
         </div>
         <div class="top-tools">
           <div class="top-tool-wrap">
+            <button type="button" class="top-tool" id="btn-account" title="Account" aria-expanded="false" aria-controls="account-panel">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4.4 0-8 2.5-8 5.6V21h16v-1.4c0-3.1-3.6-5.6-8-5.6Z"/></svg>
+            </button>
+            <div class="flyout flyout-menu is-hidden" id="account-panel" role="dialog" aria-label="Account">
+              <div class="flyout-head">
+                <h2>Account</h2>
+              </div>
+              <div class="settings-body">
+                <strong>Sign in coming soon</strong>
+                You’ll be able to sign in with your Google account in Chrome. Until then, Omni works fully without an account.
+              </div>
+            </div>
+          </div>
+          <div class="top-tool-wrap">
             <button type="button" class="top-tool" id="btn-notify" title="Notifications" aria-expanded="false" aria-controls="notify-panel">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Zm7-6.2V11a7 7 0 0 0-5-6.7V3.8a2 2 0 1 0-4 0v.5A7 7 0 0 0 5 11v4.8L3.4 17.4a1 1 0 0 0 .7 1.7h15.8a1 1 0 0 0 .7-1.7L19 15.8Z"/></svg>
               <span class="notify-badge" id="notify-badge">3</span>
@@ -70,12 +84,12 @@
       <nav class="nav" aria-label="Primary">
         <div class="nav-track" role="tablist">
           <button type="button" class="nav-btn is-active" data-nav="home" id="nav-home" role="tab" aria-selected="true">
-            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
-            <span>Home</span>
+            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2h2v4h-2V2Zm0 16h2v4h-2v-4ZM2 11h4v2H2v-2Zm16 0h4v2h-4v-2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"/></svg>
+            <span>Extractors</span>
           </button>
           <button type="button" class="nav-btn" data-nav="data" id="nav-data" role="tab" aria-selected="false">
-            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5h16v3H4V5Zm0 5.5h16V14H4v-3.5ZM4 16h16v3H4v-3Z"/></svg>
-            <span>Data</span>
+            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2c3 2.2 4.5 5.6 4.5 9.4v3.4l2.5 2.4V20l-4-1.3-1 2.3h-4l-1-2.3L5 20v-2.8l2.5-2.4v-3.4C7.5 7.6 9 4.2 12 2Zm0 6.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z"/></svg>
+            <span>Ship</span>
           </button>
           <button type="button" class="nav-btn" data-nav="cloud" id="nav-cloud" role="tab" aria-selected="false">
             <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.5 18a4.5 4.5 0 0 1-.3-9 6 6 0 0 1 11.6 1.6A3.8 3.8 0 0 1 18.2 18H7.5Z"/></svg>
@@ -87,7 +101,7 @@
       <main class="main">
         <section class="view is-visible" id="view-home" data-view="home">
           <div class="hero">
-            <p class="eyebrow">Tools</p>
+            <p class="eyebrow">Extractors</p>
             <h2 class="view-title">Extract with precision</h2>
             <p class="view-lead">Start with List Extractor — turn lists, grids, and tables into ready-to-export datasets.</p>
           </div>
@@ -116,7 +130,7 @@
         <section class="view" id="view-list" data-view="list">
           <button type="button" class="back-link" id="back-home">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
-            Back to menu
+            Back to extractors
           </button>
 
           <div class="tool-head tool-head-compact">
@@ -124,10 +138,6 @@
             <h2 class="tool-name">List Extractor</h2>
           </div>
 
-          <div class="status-banner is-hidden" id="picker-banner">
-            <span class="pulse"></span>
-            <span id="picker-banner-text">Click blocks on the page · then Done</span>
-          </div>
           <div class="status-banner is-hidden" id="button-banner">
             <span class="pulse"></span>
             Click the Next / pagination control on the page
@@ -236,12 +246,12 @@
         <section class="view" id="view-data" data-view="data">
           <button type="button" class="back-link" id="back-from-data">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
-            Back to menu
+            Back to extractors
           </button>
           <div class="hero">
-            <p class="eyebrow">Data</p>
-            <h2 class="view-title">Local datasets</h2>
-            <p class="view-lead">Everything stays in your browser until you export.</p>
+            <p class="eyebrow">Ship</p>
+            <h2 class="view-title">Cargo hold</h2>
+            <p class="view-lead">Your datasets travel inside the ship — stored in your browser until you export.</p>
           </div>
           <div id="dataset-list" class="dataset-list"></div>
           <button type="button" class="btn-secondary" id="btn-open-table">Open full table</button>
@@ -250,7 +260,7 @@
         <section class="view" id="view-cloud" data-view="cloud">
           <button type="button" class="back-link" id="back-from-cloud">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15 6 9 12l6 6"/></svg>
-            Back to menu
+            Back to extractors
           </button>
           <div class="hero">
             <p class="eyebrow">Cloud</p>
@@ -277,9 +287,9 @@
           <button type="button" class="btn-primary btn-crystal" id="btn-start" disabled>
             <span>Start extraction</span>
           </button>
-          <button type="button" class="foot-side-btn" id="btn-foot-data" title="Data">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5h16v3H4V5Zm0 5.5h16V14H4v-3.5ZM4 16h16v3H4v-3Z"/></svg>
-            <span>Data</span>
+          <button type="button" class="foot-side-btn" id="btn-foot-data" title="Ship">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2c3 2.2 4.5 5.6 4.5 9.4v3.4l2.5 2.4V20l-4-1.3-1 2.3h-4l-1-2.3L5 20v-2.8l2.5-2.4v-3.4C7.5 7.6 9 4.2 12 2Zm0 6.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z"/></svg>
+            <span>Ship</span>
             <span class="foot-badge is-hidden" id="data-badge">0</span>
           </button>
           <button type="button" class="foot-side-btn is-idle" id="btn-foot-cloud" title="Cloud (soon)" disabled>
