@@ -124,9 +124,7 @@
     noSelectHint: document.getElementById("no-select-hint"),
     btnDoneBlocks: document.getElementById("btn-done-blocks"),
     rescuedDetail: document.getElementById("rescued-detail"),
-    btnFocusEye: document.getElementById("btn-focus-eye"),
-    pickerBanner: document.getElementById("picker-banner"),
-    buttonBanner: document.getElementById("button-banner"),
+    btnFocusEye: document.getElementById("btn-focus-eye"),    buttonBanner: document.getElementById("button-banner"),
     btnPickAction: document.getElementById("btn-pick-action"),
     actionHint: document.getElementById("action-hint"),
     paginationControls: document.getElementById("pagination-controls"),
@@ -232,7 +230,7 @@
   async function ensureContentScript(tabId) {
     try {
       const ping = await chrome.tabs.sendMessage(tabId, { type: "OMNI_PING" });
-      if (!ping?.ok || (ping.version && ping.version < 12)) {
+      if (!ping?.ok || (ping.version && ping.version < 13)) {
         await chrome.scripting.executeScript({
           target: { tabId },
           files: ["content/list-extractor.js"],
@@ -564,7 +562,7 @@
     renderDataBadge();
   }
 
-  /** Start / Data / Cloud stay hidden until there is something to extract. */
+  /** Start / Ship / Cloud stay hidden until there is something to extract. */
   function updateFootGate() {
     let hasSelection = true;
     if (state.mode === "blocks") hasSelection = state.selections.length > 0;
@@ -605,9 +603,7 @@
     if (modeChanged) {
       setFocusMode(false).catch(() => {});
       resetBlockSelection();
-      sendToTab({ type: "OMNI_CANCEL_PICKER" }).catch(() => {});
-      els.pickerBanner.classList.add("is-hidden");
-      els.buttonBanner.classList.add("is-hidden");
+      sendToTab({ type: "OMNI_CANCEL_PICKER" }).catch(() => {});      els.buttonBanner.classList.add("is-hidden");
     }
     state.mode = next;
     document.querySelectorAll(".mode-orb").forEach((btn) => {
@@ -762,7 +758,7 @@
   const TIP_POOLS = {
     home: [
       { text: "Hey captain — open List Extractor when you’re ready to pull lists from this page." },
-      { text: "Data keeps your saved sets local. Tap me anytime if you want another tip." },
+      { text: "The Ship carries your saved sets locally. Tap me anytime if you want another tip." },
       { text: "Cloud sync is coming later. For now, extract freely — no account needed." },
     ],
     list: [
@@ -805,7 +801,7 @@
     "list:full-page": [
       { text: "Full page finds the main list and keeps loading more as the page grows." },
       { text: "Great for infinite scroll — sit back while I gather items." },
-      { text: "After extraction, open Data to review and export CSV." },
+      { text: "After extraction, open the Ship to review and export CSV." },
     ],
     "list:pagination": [
       { text: "Pages walks Next for you — set a limit or take them all." },
@@ -1040,38 +1036,35 @@
     });
   }
 
+  const FLYOUTS = [
+    { btn: "btn-account", panel: "account-panel" },
+    { btn: "btn-notify", panel: "notify-panel", onOpen: () => renderNotifications() },
+    { btn: "btn-settings", panel: "settings-panel" },
+  ];
+
   function closeFlyouts() {
-    document.getElementById("notify-panel")?.classList.add("is-hidden");
-    document.getElementById("settings-panel")?.classList.add("is-hidden");
-    document.getElementById("btn-notify")?.classList.remove("is-open");
-    document.getElementById("btn-settings")?.classList.remove("is-open");
-    document.getElementById("btn-notify")?.setAttribute("aria-expanded", "false");
-    document.getElementById("btn-settings")?.setAttribute("aria-expanded", "false");
+    FLYOUTS.forEach(({ btn, panel }) => {
+      document.getElementById(panel)?.classList.add("is-hidden");
+      const b = document.getElementById(btn);
+      b?.classList.remove("is-open");
+      b?.setAttribute("aria-expanded", "false");
+    });
   }
 
-  document.getElementById("btn-notify")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const panel = document.getElementById("notify-panel");
-    const open = panel && !panel.classList.contains("is-hidden");
-    closeFlyouts();
-    if (!open && panel) {
-      panel.classList.remove("is-hidden");
-      document.getElementById("btn-notify")?.classList.add("is-open");
-      document.getElementById("btn-notify")?.setAttribute("aria-expanded", "true");
-      renderNotifications();
-    }
-  });
-
-  document.getElementById("btn-settings")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const panel = document.getElementById("settings-panel");
-    const open = panel && !panel.classList.contains("is-hidden");
-    closeFlyouts();
-    if (!open && panel) {
-      panel.classList.remove("is-hidden");
-      document.getElementById("btn-settings")?.classList.add("is-open");
-      document.getElementById("btn-settings")?.setAttribute("aria-expanded", "true");
-    }
+  FLYOUTS.forEach(({ btn, panel: panelId, onOpen }) => {
+    document.getElementById(btn)?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById(panelId);
+      const open = panel && !panel.classList.contains("is-hidden");
+      closeFlyouts();
+      if (!open && panel) {
+        panel.classList.remove("is-hidden");
+        const b = document.getElementById(btn);
+        b?.classList.add("is-open");
+        b?.setAttribute("aria-expanded", "true");
+        onOpen?.();
+      }
+    });
   });
 
   document.getElementById("btn-notify-clear")?.addEventListener("click", () => {
@@ -1087,7 +1080,7 @@
     (e) => {
       const t = e.target;
       if (!(t instanceof Element)) return;
-      if (t.closest("#notify-panel, #settings-panel, #btn-notify, #btn-settings")) return;
+      if (t.closest(FLYOUTS.map(({ btn, panel }) => `#${btn}, #${panel}`).join(", "))) return;
       closeFlyouts();
     },
     true
@@ -1108,9 +1101,7 @@
       /* ignore */
     }
     resetBlockSelection();
-    resetComplete();
-    els.pickerBanner.classList.add("is-hidden");
-    els.buttonBanner.classList.add("is-hidden");
+    resetComplete();    els.buttonBanner.classList.add("is-hidden");
     setView("home");
   }
 
@@ -1152,9 +1143,7 @@
 
     // Blocks: second click while picking cancels selection mode
     if (state.picking) {
-      state.picking = false;
-      els.pickerBanner.classList.add("is-hidden");
-      renderListState();
+      state.picking = false;      renderListState();
       try {
         await sendToTab({ type: "OMNI_CANCEL_PICKER" });
       } catch {
@@ -1170,9 +1159,7 @@
       if (!keep) {
         state.selections = [];
         state.excludedKeys = [];
-      }
-      els.pickerBanner.classList.remove("is-hidden");
-      renderListState();
+      }      renderListState();
       await sendToTab({
         type: "OMNI_START_LIST_PICKER",
         multi: true,
@@ -1182,9 +1169,7 @@
         await sendToTab({ type: "OMNI_SET_SELECTION", selections: state.selections });
       }
     } catch (err) {
-      state.picking = false;
-      els.pickerBanner.classList.add("is-hidden");
-      renderListState();
+      state.picking = false;      renderListState();
       alert(String(err.message || err));
     }
   });
@@ -1193,9 +1178,7 @@
     if (!state.selections.length) return;
     if (state.selectionDone) {
       state.selectionDone = false;
-      state.picking = true;
-      els.pickerBanner.classList.remove("is-hidden");
-      renderListState();
+      state.picking = true;      renderListState();
       try {
         await sendToTab({
           type: "OMNI_START_LIST_PICKER",
@@ -1209,9 +1192,7 @@
       return;
     }
     state.picking = false;
-    state.selectionDone = true;
-    els.pickerBanner.classList.add("is-hidden");
-    try {
+    state.selectionDone = true;    try {
       await sendToTab({ type: "OMNI_FINISH_MULTI_PICK" });
     } catch {
       /* ignore */
@@ -1221,9 +1202,7 @@
 
   document.getElementById("btn-reselect").addEventListener("click", async () => {
     await setFocusMode(false);
-    resetBlockSelection();
-    els.pickerBanner.classList.add("is-hidden");
-    resetComplete();
+    resetBlockSelection();    resetComplete();
     renderListState();
     try {
       await sendToTab({ type: "OMNI_CANCEL_PICKER" });
@@ -1246,9 +1225,7 @@
 
   document.getElementById("btn-refresh")?.addEventListener("click", async () => {
     await setFocusMode(false);
-    resetBlockSelection();
-    els.pickerBanner.classList.add("is-hidden");
-    els.buttonBanner.classList.add("is-hidden");
+    resetBlockSelection();    els.buttonBanner.classList.add("is-hidden");
     resetComplete();
     renderListState();
     try {
@@ -1407,9 +1384,7 @@
       state.actionSelector = msg.actionSelector;
       renderListState();
     }
-    if (msg?.type === "OMNI_PICKER_CANCELLED") {
-      els.pickerBanner.classList.add("is-hidden");
-      els.buttonBanner.classList.add("is-hidden");
+    if (msg?.type === "OMNI_PICKER_CANCELLED") {      els.buttonBanner.classList.add("is-hidden");
       if (state.picking && !state.selectionDone) {
         state.picking = false;
         if (!state.selections.length) resetBlockSelection();
