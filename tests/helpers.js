@@ -45,9 +45,8 @@ async function waitForServiceWorker(context) {
   return worker;
 }
 
-export async function launchExtension(extensionPath) {
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-ext-"));
-  const args = [
+function launchArgs(extensionPath) {
+  return [
     `--disable-extensions-except=${extensionPath}`,
     `--load-extension=${extensionPath}`,
     "--headless=new",
@@ -55,12 +54,59 @@ export async function launchExtension(extensionPath) {
     "--disable-default-apps",
     "--disable-gpu",
   ];
-  const context = await chromium.launchPersistentContext(userDataDir, {
+}
+
+async function openExtensionContext(userDataDir, extensionPath) {
+  return chromium.launchPersistentContext(userDataDir, {
     headless: false,
     acceptDownloads: true,
     viewport: { width: 1280, height: 800 },
-    args,
+    args: launchArgs(extensionPath),
   });
+}
+
+/**
+ * Headless Chromium never resolves the optional-host permission bubble, so the
+ * suite grants the fixture origin the same way a user clicking Allow would:
+ * write it into the unpacked extension's granted host list while Chrome is
+ * closed, then relaunch that profile.
+ */
+function grantOptionalHostAccess(userDataDir, extensionPath, origins) {
+  const prefsPath = path.join(userDataDir, "Default", "Preferences");
+  const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+  const settings = data.extensions?.settings ?? {};
+  const wanted = path.resolve(extensionPath);
+  const match = Object.values(settings).find(
+    (ext) =>
+      ext.location === 8 && ext.path && path.resolve(ext.path) === wanted,
+  );
+  if (!match) {
+    throw new Error(
+      "Unpacked extension was not registered in the test profile",
+    );
+  }
+  for (const key of ["granted_permissions", "active_permissions"]) {
+    const bucket = match[key] || {
+      api: [],
+      explicit_host: [],
+      manifest_permissions: [],
+      scriptable_host: [],
+    };
+    bucket.explicit_host = [
+      ...new Set([...(bucket.explicit_host || []), ...origins]),
+    ];
+    match[key] = bucket;
+  }
+  fs.writeFileSync(prefsPath, JSON.stringify(data));
+}
+
+export async function launchExtension(extensionPath) {
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-ext-"));
+  const warmup = await openExtensionContext(userDataDir, extensionPath);
+  await waitForServiceWorker(warmup);
+  await warmup.close();
+  grantOptionalHostAccess(userDataDir, extensionPath, ["http://127.0.0.1/*"]);
+  const context = await openExtensionContext(userDataDir, extensionPath);
   const sw = await waitForServiceWorker(context);
   const extensionId = new URL(sw.url()).host;
   return { context, sw, extensionId, userDataDir };

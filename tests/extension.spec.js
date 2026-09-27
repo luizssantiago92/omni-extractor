@@ -258,6 +258,120 @@ test("CSV neutralizes formula titles and drops javascript links", async () => {
   await page.close();
 });
 
+test("host access is optional and limited to granted origins", async () => {
+  const access = await sw.evaluate(async () => {
+    const manifest = chrome.runtime.getManifest();
+    const id = chrome.runtime.id;
+    const check = globalThis.__omniIsExtensionPageSender;
+    return {
+      local: await chrome.permissions.contains({
+        origins: ["http://127.0.0.1/*"],
+      }),
+      example: await chrome.permissions.contains({
+        origins: ["https://example.com/*"],
+      }),
+      manifest,
+      senders: {
+        extensionPage: check({
+          id,
+          url: `chrome-extension://${id}/sidepanel/index.html`,
+        }),
+        extensionTab: check({
+          id,
+          url: `chrome-extension://${id}/data/table.html`,
+          tab: { id: 1 },
+        }),
+        contentScript: check({
+          id,
+          url: "https://example.com/list",
+          tab: { id: 2 },
+        }),
+        otherExtension: check({
+          id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          url: "https://example.com/",
+        }),
+        missing: check(null),
+      },
+    };
+  });
+  expect(access.local).toBe(true);
+  expect(access.example).toBe(false);
+  expect(access.manifest.host_permissions ?? []).toEqual([]);
+  expect(access.manifest.optional_host_permissions).toEqual([
+    "http://*/*",
+    "https://*/*",
+  ]);
+  expect(access.manifest.permissions).toEqual([
+    "sidePanel",
+    "storage",
+    "unlimitedStorage",
+    "scripting",
+    "tabs",
+  ]);
+  expect(access.manifest.content_security_policy.extension_pages).toBe(
+    "script-src 'self'; object-src 'self'; base-uri 'none'",
+  );
+  expect(access.senders).toEqual({
+    extensionPage: true,
+    extensionTab: true,
+    contentScript: false,
+    otherExtension: false,
+    missing: false,
+  });
+});
+
+test("side panel loads under the extension page CSP", async () => {
+  const panel = await context.newPage();
+  const errors = [];
+  panel.on("pageerror", (err) => errors.push(String(err)));
+  await panel.goto(`chrome-extension://${extensionId}/sidepanel/index.html`);
+  await expect(panel.locator("#open-list-extractor")).toBeVisible();
+  await expect(panel.locator("#btn-stop")).toHaveCount(1);
+  expect(errors).toEqual([]);
+  await panel.close();
+});
+
+test("pagination commands from a page are ignored", async () => {
+  const { page, tabId } = await openFixture("/grid.html");
+  const outcome = await sw.evaluate(async (id) => {
+    const injected = await chrome.scripting.executeScript({
+      target: { tabId: id },
+      func: (targetTabId) => {
+        if (!chrome.runtime?.sendMessage) return { error: "no runtime" };
+        return chrome.runtime
+          .sendMessage({
+            type: "OMNI_PAGINATION_START",
+            tabId: targetTabId,
+            pagesAll: false,
+            pageLimit: 1,
+          })
+          .then(
+            (response) => ({ response: response ?? null }),
+            (error) => ({ error: String(error) }),
+          );
+      },
+      args: [id],
+    });
+    const stored = await chrome.storage.session.get("omniPaginationRun");
+    return {
+      injected: injected?.[0]?.result ?? null,
+      run: stored.omniPaginationRun || null,
+    };
+  }, tabId);
+  expect(outcome.run).toBeNull();
+  await page.close();
+});
+
+test("pagination stop from an extension page is accepted", async () => {
+  const table = await context.newPage();
+  await table.goto(`chrome-extension://${extensionId}/data/table.html`);
+  const response = await table.evaluate(() =>
+    chrome.runtime.sendMessage({ type: "OMNI_PAGINATION_STOP" }),
+  );
+  expect(response).toEqual({ ok: true });
+  await table.close();
+});
+
 test("referenced datasets survive the loose-dataset cap", async () => {
   const summary = await sw.evaluate(async () => {
     const collectionId = "col_eviction";
