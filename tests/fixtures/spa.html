@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SPA catalog</title>
+    <style>
+      body { font-family: sans-serif; margin: 24px; }
+      .products { display: grid; grid-template-columns: repeat(3, 200px); gap: 12px; }
+      .card { display: block; min-height: 72px; padding: 8px; border: 1px solid #ccc; }
+      #next-page { margin-top: 16px; padding: 8px 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="products" id="grid"></div>
+      <button type="button" id="next-page">Next</button>
+    </main>
+    <script>
+      const pages = [
+        ["Spa One", "Spa Two", "Spa Three"],
+        ["Spa Four", "Spa Five", "Spa Six"],
+      ];
+      let index = 0;
+      const grid = document.getElementById("grid");
+      const button = document.getElementById("next-page");
+
+      function render() {
+        grid.replaceChildren();
+        pages[index].forEach((title, item) => {
+          const card = document.createElement("article");
+          card.className = "card";
+          const link = document.createElement("a");
+          link.href = `/spa/${index}-${item}`;
+          const heading = document.createElement("h3");
+          heading.textContent = title;
+          link.appendChild(heading);
+          card.appendChild(link);
+          grid.appendChild(card);
+        });
+      }
+
+      button.addEventListener("click", () => {
+        if (index >= pages.length - 1) {
+          button.disabled = true;
+          return;
+        }
+        index += 1;
+        render();
+        if (index >= pages.length - 1) button.disabled = true;
+      });
+
+      render();
+    </script>
+  </body>
+</html>

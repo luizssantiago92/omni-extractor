@@ -142,6 +142,7 @@
             <span class="pulse"></span>
             Click the Next / pagination control on the page
           </div>
+          <p class="hint is-hidden" id="run-error" role="alert"></p>
 
           <div id="list-workspace" class="list-workspace">
             <div class="mode-rail" role="radiogroup" aria-label="Extraction mode">
@@ -226,7 +227,7 @@
                 <input type="number" id="page-limit" min="1" max="500" value="5" disabled />
                 <button type="button" class="chip-toggle is-active" id="btn-pages-all" aria-pressed="true">All</button>
               </div>
-              <p class="hint">Each page becomes a dataset; we save a <strong>collection</strong> at the end.</p>
+              <p class="hint">Each page is saved into a <strong>collection</strong> as it loads. Stop keeps the pages already collected.</p>
               <button type="button" class="btn-secondary" id="btn-pick-action">Pick Next button (optional)</button>
               <p class="hint is-hidden" id="action-hint"></p>
             </div>
@@ -299,6 +300,8 @@
         </div>
       </footer>
     </div>
+    <script src="../shared/version.js"></script>
+    <script src="../shared/storage.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

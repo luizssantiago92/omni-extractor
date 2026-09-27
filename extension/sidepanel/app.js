@@ -1,9 +1,12 @@
 (() => {
   const MODE_COPY = {
     blocks: "Select one or more list blocks on the page.",
-    "full-page": "Extracts the dominant list, including load-more / infinite scroll.",
-    pagination: "Walks pages automatically. Each page becomes a dataset in a collection.",
-    filter: "Keeps items whose title matches a letter or word. Use ; for multiple terms.",
+    "full-page":
+      "Extracts the dominant list, including load-more / infinite scroll.",
+    pagination:
+      "Walks pages automatically. Each page becomes a dataset in a collection.",
+    filter:
+      "Keeps items whose title matches a letter or word. Use ; for multiple terms.",
   };
 
   const WALLPAPER_SCENES = [
@@ -21,7 +24,9 @@
     let index = 0;
     let showingA = true;
     let swapping = false;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     WALLPAPER_SCENES.forEach((src) => {
       const preload = new Image();
@@ -85,6 +90,7 @@
     actionLabel: "",
     actionSelector: null,
     extracting: false,
+    boundTabId: null,
     lastDatasetId: null,
     lastCollectionId: null,
     lastCount: 0,
@@ -124,7 +130,9 @@
     noSelectHint: document.getElementById("no-select-hint"),
     btnDoneBlocks: document.getElementById("btn-done-blocks"),
     rescuedDetail: document.getElementById("rescued-detail"),
-    btnFocusEye: document.getElementById("btn-focus-eye"),    buttonBanner: document.getElementById("button-banner"),
+    btnFocusEye: document.getElementById("btn-focus-eye"),
+    buttonBanner: document.getElementById("button-banner"),
+    runError: document.getElementById("run-error"),
     btnPickAction: document.getElementById("btn-pick-action"),
     actionHint: document.getElementById("action-hint"),
     paginationControls: document.getElementById("pagination-controls"),
@@ -180,7 +188,10 @@
     state.focusOn = !!on && state.selections.length > 0;
     if (els.btnFocusEye) {
       els.btnFocusEye.classList.toggle("is-on", state.focusOn);
-      els.btnFocusEye.setAttribute("aria-pressed", state.focusOn ? "true" : "false");
+      els.btnFocusEye.setAttribute(
+        "aria-pressed",
+        state.focusOn ? "true" : "false",
+      );
     }
     try {
       await sendToTab({
@@ -213,7 +224,9 @@
   function canStart() {
     if (state.extracting) return false;
     if (state.mode === "blocks") {
-      return state.selectionDone && state.selections.length > 0 && totalItems() > 0;
+      return (
+        state.selectionDone && state.selections.length > 0 && totalItems() > 0
+      );
     }
     if (state.mode === "filter") {
       const { tokens, invalid } = parseFilterTokens(state.filterRaw);
@@ -223,35 +236,57 @@
   }
 
   async function activeTab() {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    return tab;
+  }
+
+  async function pinActiveTab() {
+    const tab = await activeTab();
+    if (!tab?.id) throw new Error("No active tab");
+    if (!tab.url || !/^https?:/i.test(tab.url)) {
+      throw new Error("Open an http(s) page to extract");
+    }
+    state.boundTabId = tab.id;
     return tab;
   }
 
   async function ensureContentScript(tabId) {
+    const version = globalThis.OMNI_LIST_EXTRACTOR_VERSION;
     try {
       const ping = await chrome.tabs.sendMessage(tabId, { type: "OMNI_PING" });
-      if (!ping?.ok || (ping.version && ping.version < 13)) {
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          files: ["content/list-extractor.js"],
-        });
-      }
+      if (ping?.ok && ping.version >= version) return;
     } catch {
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        files: ["content/list-extractor.js"],
-      });
+      /* Cold tab, or navigation destroyed the previous content script. */
     }
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["shared/version.js", "content/list-extractor.js"],
+    });
   }
 
   async function sendToTab(message) {
-    const tab = await activeTab();
-    if (!tab?.id) throw new Error("No active tab");
-    if (!tab.url || tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) {
+    if (!state.boundTabId) await pinActiveTab();
+    const tab = await chrome.tabs.get(state.boundTabId);
+    if (!tab?.url || !/^https?:/i.test(tab.url)) {
       throw new Error("Open an http(s) page to extract");
     }
     await ensureContentScript(tab.id);
     return chrome.tabs.sendMessage(tab.id, message);
+  }
+
+  function clearRunError() {
+    if (!els.runError) return;
+    els.runError.textContent = "";
+    els.runError.classList.add("is-hidden");
+  }
+
+  function showRunError(message) {
+    if (!els.runError) return;
+    els.runError.textContent = message;
+    els.runError.classList.remove("is-hidden");
   }
 
   function setView(name) {
@@ -298,7 +333,10 @@
           }
         } else {
           try {
-            await sendToTab({ type: "OMNI_SET_SELECTION", selections: state.selections });
+            await sendToTab({
+              type: "OMNI_SET_SELECTION",
+              selections: state.selections,
+            });
             if (state.focusOn) await setFocusMode(true);
           } catch {
             /* ignore */
@@ -315,7 +353,10 @@
   function renderRescuedDetail() {
     if (!els.rescuedDetail) return;
     const rows = collectPreviewItems(24);
-    const show = state.mode === "blocks" && rows.length > 0 && (state.picking || state.selectionDone);
+    const show =
+      state.mode === "blocks" &&
+      rows.length > 0 &&
+      (state.picking || state.selectionDone);
     els.rescuedDetail.classList.toggle("is-hidden", !show);
     els.rescuedDetail.innerHTML = "";
     if (!show) return;
@@ -349,7 +390,8 @@
       rm.setAttribute("aria-label", "Remove item");
       rm.textContent = "×";
       rm.addEventListener("click", () => {
-        if (!state.excludedKeys.includes(row.key)) state.excludedKeys.push(row.key);
+        if (!state.excludedKeys.includes(row.key))
+          state.excludedKeys.push(row.key);
         renderListState();
       });
       item.appendChild(copy);
@@ -402,11 +444,15 @@
     els.paginationControls.classList.toggle("is-hidden", !show);
     if (!show) return;
     els.btnPagesAll.classList.toggle("is-active", state.pagesAll);
-    els.btnPagesAll.setAttribute("aria-pressed", state.pagesAll ? "true" : "false");
+    els.btnPagesAll.setAttribute(
+      "aria-pressed",
+      state.pagesAll ? "true" : "false",
+    );
     els.pageLimit.disabled = state.pagesAll;
     els.pageLimit.value = String(state.pageLimit);
     els.actionHint.classList.toggle("is-hidden", !state.actionLabel);
-    if (state.actionLabel) els.actionHint.textContent = `Button: ${state.actionLabel}`;
+    if (state.actionLabel)
+      els.actionHint.textContent = `Button: ${state.actionLabel}`;
   }
 
   function renderFilterControls() {
@@ -431,10 +477,11 @@
       els.tokenChipList.appendChild(li);
     });
     if (invalid.length) {
-      els.filterHint.textContent = "Each term must be one letter or one word (no spaces). Separate with ;";
+      els.filterHint.textContent =
+        "Each term must be one letter or one word (no spaces). Separate with ;";
     } else if (!tokens.length) {
       els.filterHint.innerHTML =
-        'Letters or single words only · separate with <strong>;</strong> · no phrases';
+        "Letters or single words only · separate with <strong>;</strong> · no phrases";
     } else {
       els.filterHint.textContent = `${tokens.length} filter term${tokens.length === 1 ? "" : "s"} · match any in the title`;
     }
@@ -453,11 +500,14 @@
     els.selectStage.classList.remove("is-passive");
     els.btnSelectList.disabled = state.extracting;
     els.btnSelectList.classList.toggle("is-picking", isBlocks && state.picking);
-    els.btnSelectList.classList.toggle("is-ready", isBlocks && state.selectionDone);
+    els.btnSelectList.classList.toggle(
+      "is-ready",
+      isBlocks && state.selectionDone,
+    );
     els.btnSelectList.classList.toggle("is-guide", !needsPick);
     els.btnSelectList.setAttribute(
       "aria-pressed",
-      isBlocks && state.picking ? "true" : "false"
+      isBlocks && state.picking ? "true" : "false",
     );
 
     if (!needsPick) {
@@ -494,7 +544,9 @@
       const { tokens } = parseFilterTokens(state.filterRaw);
       els.selectionTray.classList.add("is-filter-only");
       els.trayTitle.textContent = "Filter";
-      els.trayMeta.textContent = tokens.length ? `${tokens.length} term${tokens.length === 1 ? "" : "s"}` : "Empty";
+      els.trayMeta.textContent = tokens.length
+        ? `${tokens.length} term${tokens.length === 1 ? "" : "s"}`
+        : "Empty";
       els.trayEmpty.classList.add("is-hidden");
       els.previewMosaic.classList.add("is-hidden");
       els.previewMosaic.innerHTML = "";
@@ -507,20 +559,23 @@
       }
     } else if (!isBlocks) {
       els.selectionTray.classList.remove("is-filter-only");
-      els.trayTitle.textContent = state.mode === "pagination" ? "Pagination" : "Full page";
+      els.trayTitle.textContent =
+        state.mode === "pagination" ? "Pagination" : "Full page";
       els.trayMeta.textContent = "Auto";
       els.trayEmpty.classList.add("is-hidden");
       els.previewMosaic.classList.add("is-hidden");
       els.previewMosaic.innerHTML = "";
       els.noSelectHint.classList.remove("is-hidden");
-      els.noSelectHint.textContent = "No picking needed — hit Start extraction.";
+      els.noSelectHint.textContent =
+        "No picking needed — hit Start extraction.";
       if (els.rescuedDetail) {
         els.rescuedDetail.classList.add("is-hidden");
         els.rescuedDetail.innerHTML = "";
       }
     } else {
       els.selectionTray.classList.remove("is-filter-only");
-      els.trayTitle.textContent = state.picking || state.selectionDone ? "Rescued items" : "Selection";
+      els.trayTitle.textContent =
+        state.picking || state.selectionDone ? "Rescued items" : "Selection";
       els.trayMeta.textContent =
         nBlocks === 0
           ? "Empty"
@@ -551,7 +606,10 @@
     if (els.btnFocusEye) {
       els.btnFocusEye.classList.toggle("is-on", state.focusOn);
       els.btnFocusEye.disabled = nBlocks < 1;
-      els.btnFocusEye.setAttribute("aria-pressed", state.focusOn ? "true" : "false");
+      els.btnFocusEye.setAttribute(
+        "aria-pressed",
+        state.focusOn ? "true" : "false",
+      );
     }
     renderBlockChips();
     els.btnStart.disabled = !canStart();
@@ -569,7 +627,10 @@
     else if (state.mode === "filter") {
       hasSelection = parseFilterTokens(state.filterRaw).tokens.length > 0;
     }
-    els.footList.classList.toggle("is-awaiting", !hasSelection && !state.extracting);
+    els.footList.classList.toggle(
+      "is-awaiting",
+      !hasSelection && !state.extracting,
+    );
   }
 
   function renderDataBadge() {
@@ -603,7 +664,15 @@
     if (modeChanged) {
       setFocusMode(false).catch(() => {});
       resetBlockSelection();
-      sendToTab({ type: "OMNI_CANCEL_PICKER" }).catch(() => {});      els.buttonBanner.classList.add("is-hidden");
+      els.buttonBanner.classList.add("is-hidden");
+      (async () => {
+        try {
+          await pinActiveTab();
+          await sendToTab({ type: "OMNI_CANCEL_PICKER" });
+        } catch {
+          /* ignore */
+        }
+      })();
     }
     state.mode = next;
     document.querySelectorAll(".mode-orb").forEach((btn) => {
@@ -612,7 +681,8 @@
       btn.setAttribute("aria-checked", on ? "true" : "false");
     });
     renderListState();
-    if (modeChanged && typeof onTipContextChanged === "function") onTipContextChanged();
+    if (modeChanged && typeof onTipContextChanged === "function")
+      onTipContextChanged();
   }
 
   function showComplete(count, thumbs, pageCount = 0) {
@@ -642,68 +712,35 @@
   }
 
   async function saveDataset(payload) {
-    const id = `ds_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const dataset = {
-      id,
-      createdAt: new Date().toISOString(),
-      tool: "list",
-      title: payload.pageTitle || "List",
-      pageUrl: payload.pageUrl || "",
-      rows: payload.rows || [],
-      paradigm: payload.paradigm || state.mode,
-      collectionId: payload.collectionId || null,
-      pageIndex: payload.pageIndex || null,
-    };
-    const stored = await chrome.storage.local.get(["datasets", "activeDatasetId"]);
-    const datasets = stored.datasets || [];
-    datasets.unshift(dataset);
-    await chrome.storage.local.set({
-      datasets: datasets.slice(0, 100),
-      activeDatasetId: id,
-    });
-    state.lastDatasetId = id;
-    return dataset;
-  }
-
-  async function savePaginationCollection(payload) {
-    const collectionId = `col_${Date.now()}`;
-    const datasetIds = [];
-    const baseTitle = payload.pageTitle || "List";
-    for (const page of payload.pages || []) {
-      const ds = await saveDataset({
-        pageTitle: `${baseTitle} · p.${page.pageIndex}`,
-        pageUrl: page.pageUrl || payload.pageUrl,
-        rows: page.rows || [],
-        paradigm: "pagination",
-        collectionId,
-        pageIndex: page.pageIndex,
+    try {
+      const dataset = await globalThis.OmniStorage.saveDataset({
+        ...payload,
+        paradigm: payload.paradigm || state.mode,
       });
-      datasetIds.push(ds.id);
-      await new Promise((r) => setTimeout(r, 2));
+      state.lastDatasetId = dataset.id;
+      state.lastCollectionId = null;
+      return dataset;
+    } catch (err) {
+      if (err?.quota || globalThis.OmniStorage.isQuotaError(err)) {
+        const error = new Error(globalThis.OmniStorage.QUOTA_MESSAGE);
+        error.quota = true;
+        throw error;
+      }
+      throw err;
     }
-    const collection = {
-      id: collectionId,
-      createdAt: new Date().toISOString(),
-      tool: "list",
-      title: baseTitle,
-      pageUrl: payload.pageUrl || "",
-      datasetIds,
-      pageCount: datasetIds.length,
-      totalRows: (payload.rows || []).length,
-    };
-    const stored = await chrome.storage.local.get("collections");
-    const collections = stored.collections || [];
-    collections.unshift(collection);
-    await chrome.storage.local.set({ collections: collections.slice(0, 50) });
-    state.lastCollectionId = collectionId;
-    return collection;
   }
 
-  async function openDataTable(datasetId) {
+  async function openDataTable(datasetId, collectionId) {
     const payload = {};
-    if (datasetId) payload.activeDatasetId = datasetId;
+    if (collectionId) {
+      payload.activeCollectionId = collectionId;
+      payload.activeDatasetId = null;
+    } else if (datasetId) {
+      payload.activeDatasetId = datasetId;
+      payload.activeCollectionId = null;
+    }
     if (Object.keys(payload).length) await chrome.storage.local.set(payload);
-    chrome.runtime.sendMessage({ type: "OPEN_DATA_TABLE" });
+    await chrome.runtime.sendMessage({ type: "OPEN_DATA_TABLE" });
   }
 
   async function renderDatasets() {
@@ -724,11 +761,7 @@
       btn.title = "Open collection in table";
       btn.innerHTML = `<strong>${escapeHtml(col.title)}</strong><span>Collection · ${col.pageCount || 0} pages · ${col.totalRows || 0} items · ${new Date(col.createdAt).toLocaleString()}</span>`;
       btn.addEventListener("click", async () => {
-        const firstId =
-          col.datasetIds?.[0] ||
-          datasets.find((d) => d.collectionId === col.id)?.id ||
-          null;
-        await openDataTable(firstId);
+        await openDataTable(null, col.id);
       });
       els.datasetList.appendChild(btn);
     });
@@ -757,9 +790,15 @@
 
   const TIP_POOLS = {
     home: [
-      { text: "Hey captain — open List Extractor when you’re ready to pull lists from this page." },
-      { text: "The Ship carries your saved sets locally. Tap me anytime if you want another tip." },
-      { text: "Cloud sync is coming later. For now, extract freely — no account needed." },
+      {
+        text: "Hey captain — open List Extractor when you’re ready to pull lists from this page.",
+      },
+      {
+        text: "The Ship carries your saved sets locally. Tap me anytime if you want another tip.",
+      },
+      {
+        text: "Cloud sync is coming later. For now, extract freely — no account needed.",
+      },
     ],
     list: [
       {
@@ -770,7 +809,9 @@
         text: "Need more blocks? Tap Locked to unlock, pick again, then Done.",
         image: "../icons/tips/tip-done.png",
       },
-      { text: "Start stays off until your selection is Locked — I wait with you." },
+      {
+        text: "Start stays off until your selection is Locked — I wait with you.",
+      },
       {
         text: "Peek with the eye by Select — I spotlight what you picked.",
         image: "../icons/tips/tip-eye.png",
@@ -796,10 +837,14 @@
         image: "../icons/tips/tip-filter.png",
       },
       { text: "Single words or letters only — no spaces inside a term." },
-      { text: "When your tokens look good, hit Start — no page picking needed." },
+      {
+        text: "When your tokens look good, hit Start — no page picking needed.",
+      },
     ],
     "list:full-page": [
-      { text: "Full page finds the main list and keeps loading more as the page grows." },
+      {
+        text: "Full page finds the main list and keeps loading more as the page grows.",
+      },
       { text: "Great for infinite scroll — sit back while I gather items." },
       { text: "After extraction, open the Ship to review and export CSV." },
     ],
@@ -834,7 +879,6 @@
   let tipGeneration = 0;
   let tipTypeTimer = null;
   let tipHoldTimer = null;
-  let tipBusy = false;
   let tipContextKey = null;
 
   function clearTipTimers() {
@@ -909,7 +953,7 @@
     });
   }
 
-  function holdTip(ms, generation) {
+  function holdTip(ms, _generation) {
     return new Promise((resolve) => {
       tipHoldTimer = setTimeout(() => resolve(), ms);
     });
@@ -937,7 +981,6 @@
   async function runTipBurst(count = 3) {
     const generation = ++tipGeneration;
     clearTipTimers();
-    tipBusy = true;
     tipContextKey = tipContextSignature();
     try {
       const pool = currentTipPool();
@@ -955,8 +998,8 @@
       }
       if (generation !== tipGeneration) return;
       hideTipBubble();
-    } finally {
-      if (generation === tipGeneration) tipBusy = false;
+    } catch {
+      /* Tip animation can be interrupted when the panel context changes. */
     }
   }
 
@@ -964,7 +1007,6 @@
   async function speakOneTipFromMascot() {
     const generation = ++tipGeneration;
     clearTipTimers();
-    tipBusy = true;
     tipContextKey = tipContextSignature();
     try {
       const pool = currentTipPool();
@@ -972,8 +1014,8 @@
       const tip = pool[tipIndex % pool.length];
       tipIndex = (tipIndex + 1) % pool.length;
       await speakTip(tip, generation, { dwellMs: 2400 });
-    } finally {
-      if (generation === tipGeneration) tipBusy = false;
+    } catch {
+      /* Tip animation can be interrupted by another mascot click. */
     }
   }
 
@@ -1038,7 +1080,11 @@
 
   const FLYOUTS = [
     { btn: "btn-account", panel: "account-panel" },
-    { btn: "btn-notify", panel: "notify-panel", onOpen: () => renderNotifications() },
+    {
+      btn: "btn-notify",
+      panel: "notify-panel",
+      onOpen: () => renderNotifications(),
+    },
     { btn: "btn-settings", panel: "settings-panel" },
   ];
 
@@ -1080,10 +1126,15 @@
     (e) => {
       const t = e.target;
       if (!(t instanceof Element)) return;
-      if (t.closest(FLYOUTS.map(({ btn, panel }) => `#${btn}, #${panel}`).join(", "))) return;
+      if (
+        t.closest(
+          FLYOUTS.map(({ btn, panel }) => `#${btn}, #${panel}`).join(", "),
+        )
+      )
+        return;
       closeFlyouts();
     },
-    true
+    true,
   );
 
   document.addEventListener("keydown", (e) => {
@@ -1101,20 +1152,27 @@
       /* ignore */
     }
     resetBlockSelection();
-    resetComplete();    els.buttonBanner.classList.add("is-hidden");
+    resetComplete();
+    els.buttonBanner.classList.add("is-hidden");
     setView("home");
   }
 
-  document.getElementById("open-list-extractor").addEventListener("click", () => {
-    resetComplete();
-    setView("list");
-  });
+  document
+    .getElementById("open-list-extractor")
+    .addEventListener("click", () => {
+      resetComplete();
+      setView("list");
+    });
 
   document.getElementById("back-home").addEventListener("click", () => {
     goBackToMenu();
   });
-  document.getElementById("back-from-data")?.addEventListener("click", () => setView("home"));
-  document.getElementById("back-from-cloud")?.addEventListener("click", () => setView("home"));
+  document
+    .getElementById("back-from-data")
+    ?.addEventListener("click", () => setView("home"));
+  document
+    .getElementById("back-from-cloud")
+    ?.addEventListener("click", () => setView("home"));
 
   Object.entries(navButtons).forEach(([key, el]) => {
     if (!el) return;
@@ -1141,9 +1199,17 @@
       return;
     }
 
+    try {
+      await pinActiveTab();
+    } catch (err) {
+      alert(String(err.message || err));
+      return;
+    }
+
     // Blocks: second click while picking cancels selection mode
     if (state.picking) {
-      state.picking = false;      renderListState();
+      state.picking = false;
+      renderListState();
       try {
         await sendToTab({ type: "OMNI_CANCEL_PICKER" });
       } catch {
@@ -1159,40 +1225,56 @@
       if (!keep) {
         state.selections = [];
         state.excludedKeys = [];
-      }      renderListState();
+      }
+      renderListState();
       await sendToTab({
         type: "OMNI_START_LIST_PICKER",
         multi: true,
         keepSelections: keep,
       });
       if (keep) {
-        await sendToTab({ type: "OMNI_SET_SELECTION", selections: state.selections });
+        await sendToTab({
+          type: "OMNI_SET_SELECTION",
+          selections: state.selections,
+        });
       }
     } catch (err) {
-      state.picking = false;      renderListState();
+      state.picking = false;
+      renderListState();
       alert(String(err.message || err));
     }
   });
 
   els.btnDoneBlocks.addEventListener("click", async () => {
     if (!state.selections.length) return;
+    try {
+      await pinActiveTab();
+    } catch (err) {
+      alert(String(err.message || err));
+      return;
+    }
     if (state.selectionDone) {
       state.selectionDone = false;
-      state.picking = true;      renderListState();
+      state.picking = true;
+      renderListState();
       try {
         await sendToTab({
           type: "OMNI_START_LIST_PICKER",
           multi: true,
           keepSelections: true,
         });
-        await sendToTab({ type: "OMNI_SET_SELECTION", selections: state.selections });
+        await sendToTab({
+          type: "OMNI_SET_SELECTION",
+          selections: state.selections,
+        });
       } catch (err) {
         alert(String(err.message || err));
       }
       return;
     }
     state.picking = false;
-    state.selectionDone = true;    try {
+    state.selectionDone = true;
+    try {
       await sendToTab({ type: "OMNI_FINISH_MULTI_PICK" });
     } catch {
       /* ignore */
@@ -1200,20 +1282,28 @@
     renderListState();
   });
 
-  document.getElementById("btn-reselect").addEventListener("click", async () => {
-    await setFocusMode(false);
-    resetBlockSelection();    resetComplete();
-    renderListState();
-    try {
-      await sendToTab({ type: "OMNI_CANCEL_PICKER" });
-      await sendToTab({ type: "OMNI_FOCUS_SELECTION", on: false });
-    } catch {
-      /* ignore */
-    }
-  });
+  document
+    .getElementById("btn-reselect")
+    .addEventListener("click", async () => {
+      await setFocusMode(false);
+      resetBlockSelection();
+      resetComplete();
+      renderListState();
+      try {
+        await sendToTab({ type: "OMNI_CANCEL_PICKER" });
+        await sendToTab({ type: "OMNI_FOCUS_SELECTION", on: false });
+      } catch {
+        /* ignore */
+      }
+    });
 
   els.btnFocusEye?.addEventListener("click", async () => {
     if (!state.selections.length) return;
+    try {
+      await pinActiveTab();
+    } catch {
+      /* Focus still toggles locally if the page cannot be scripted. */
+    }
     await setFocusMode(!state.focusOn);
   });
 
@@ -1223,25 +1313,26 @@
     );
   });
 
-  document.getElementById("btn-refresh")?.addEventListener("click", async () => {
-    await setFocusMode(false);
-    resetBlockSelection();    els.buttonBanner.classList.add("is-hidden");
-    resetComplete();
-    renderListState();
-    try {
-      await sendToTab({ type: "OMNI_CANCEL_PICKER" });
-      await sendToTab({ type: "OMNI_FOCUS_SELECTION", on: false });
-      const tab = await activeTab();
-      if (tab?.id) {
+  document
+    .getElementById("btn-refresh")
+    ?.addEventListener("click", async () => {
+      await setFocusMode(false);
+      resetBlockSelection();
+      els.buttonBanner.classList.add("is-hidden");
+      resetComplete();
+      renderListState();
+      try {
+        await sendToTab({ type: "OMNI_CANCEL_PICKER" });
+        await sendToTab({ type: "OMNI_FOCUS_SELECTION", on: false });
+        const tab = await pinActiveTab();
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },
-          files: ["content/list-extractor.js"],
+          files: ["shared/version.js", "content/list-extractor.js"],
         });
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
-    }
-  });
+    });
 
   document.getElementById("btn-close")?.addEventListener("click", async () => {
     await setFocusMode(false);
@@ -1263,7 +1354,8 @@
 
   els.pageLimit.addEventListener("change", () => {
     const n = Number(els.pageLimit.value);
-    state.pageLimit = Number.isFinite(n) && n >= 1 ? Math.min(500, Math.floor(n)) : 5;
+    state.pageLimit =
+      Number.isFinite(n) && n >= 1 ? Math.min(500, Math.floor(n)) : 5;
     state.pagesAll = false;
     renderPaginationControls();
   });
@@ -1283,6 +1375,7 @@
 
   els.btnPickAction.addEventListener("click", async () => {
     try {
+      await pinActiveTab();
       els.buttonBanner.classList.remove("is-hidden");
       await sendToTab({ type: "OMNI_START_BUTTON_PICKER" });
     } catch (err) {
@@ -1294,44 +1387,84 @@
   els.btnStart.addEventListener("click", async () => {
     if (!canStart()) return;
     state.extracting = true;
+    clearRunError();
     els.progressBox.classList.remove("is-hidden");
     els.progressCount.textContent = "0";
     els.btnStart.disabled = true;
     try {
-      const payload = {
-        type: "OMNI_RUN_EXTRACT",
-        mode: state.mode,
-        paradigm: state.mode,
-        selections: state.mode === "blocks" ? state.selections : undefined,
-        actionSelector: state.actionSelector || undefined,
-        pagesAll: state.mode === "pagination" ? state.pagesAll : false,
-        pageLimit:
-          state.mode === "pagination" && !state.pagesAll ? state.pageLimit : undefined,
-        filterTokens:
-          state.mode === "filter" ? parseFilterTokens(state.filterRaw).tokens : undefined,
-        excludeKeys: state.mode === "blocks" ? state.excludedKeys : undefined,
-      };
-      const result = await sendToTab(payload);
-      if (!result?.ok) throw new Error(result?.error || "Extraction failed");
-      if (state.excludedKeys.length && Array.isArray(result.rows)) {
+      await pinActiveTab();
+      let result;
+      if (state.mode === "pagination") {
+        result = await chrome.runtime.sendMessage({
+          type: "OMNI_PAGINATION_START",
+          tabId: state.boundTabId,
+          pagesAll: state.pagesAll,
+          pageLimit: state.pagesAll ? null : state.pageLimit,
+          actionSelector: state.actionSelector || null,
+        });
+      } else {
+        result = await sendToTab({
+          type: "OMNI_RUN_EXTRACT",
+          mode: state.mode,
+          paradigm: state.mode,
+          selections: state.mode === "blocks" ? state.selections : undefined,
+          actionSelector: state.actionSelector || undefined,
+          filterTokens:
+            state.mode === "filter"
+              ? parseFilterTokens(state.filterRaw).tokens
+              : undefined,
+          excludeKeys: state.mode === "blocks" ? state.excludedKeys : undefined,
+        });
+      }
+      const partialPagination =
+        state.mode === "pagination" &&
+        Array.isArray(result?.pages) &&
+        result.pages.length > 0;
+      if (result?.quota) {
+        const error = new Error(
+          result.error || globalThis.OmniStorage.QUOTA_MESSAGE,
+        );
+        error.quota = true;
+        if (!partialPagination && !result.rows?.length) throw error;
+        showRunError(error.message);
+      } else if (!result?.ok) {
+        if (!partialPagination) {
+          throw new Error(result?.error || "Extraction failed");
+        }
+        showRunError(result.error || "Extraction stopped early");
+      }
+      if (
+        state.excludedKeys.length &&
+        Array.isArray(result.rows) &&
+        state.mode === "blocks"
+      ) {
         const ex = new Set(state.excludedKeys);
         result.rows = result.rows.filter((r) => !ex.has(rowKey(r)));
       }
 
       let pageCount = 0;
-      if (result.paradigm === "pagination" && Array.isArray(result.pages) && result.pages.length) {
-        const col = await savePaginationCollection(result);
-        pageCount = col.pageCount;
-        state.lastCount = col.totalRows;
+      if (state.mode === "pagination") {
+        pageCount = result.pageCount || result.pages?.length || 0;
+        state.lastCount = result.totalRows ?? (result.rows || []).length;
+        state.lastCollectionId = result.collectionId || null;
+        state.lastDatasetId = result.lastDatasetId || null;
       } else {
         const ds = await saveDataset(result);
         state.lastCount = ds.rows.length;
       }
       state.lastPageCount = pageCount;
-      state.lastThumbs = (result.rows || []).map((r) => r.image).filter(Boolean);
+      state.lastThumbs = (result.rows || [])
+        .map((r) => r.image)
+        .filter(Boolean);
       showComplete(state.lastCount, state.lastThumbs, pageCount);
     } catch (err) {
-      alert(String(err.message || err));
+      if (err?.quota || globalThis.OmniStorage.isQuotaError(err)) {
+        showRunError(
+          err.quota ? err.message : globalThis.OmniStorage.QUOTA_MESSAGE,
+        );
+      } else {
+        alert(String(err.message || err));
+      }
     } finally {
       state.extracting = false;
       els.progressBox.classList.add("is-hidden");
@@ -1341,6 +1474,11 @@
 
   document.getElementById("btn-stop").addEventListener("click", async () => {
     try {
+      await chrome.runtime.sendMessage({ type: "OMNI_PAGINATION_STOP" });
+    } catch {
+      /* ignore */
+    }
+    try {
       await sendToTab({ type: "OMNI_STOP_EXTRACT" });
     } catch {
       /* ignore */
@@ -1348,7 +1486,7 @@
   });
 
   document.getElementById("btn-view-data").addEventListener("click", () => {
-    openDataTable(state.lastDatasetId);
+    openDataTable(state.lastDatasetId, state.lastCollectionId);
   });
 
   document.getElementById("btn-new-run").addEventListener("click", () => {
@@ -1369,10 +1507,15 @@
   });
 
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === "OMNI_BLOCK_ADDED" || msg?.type === "OMNI_LIST_SELECTED") {
+    if (
+      msg?.type === "OMNI_BLOCK_ADDED" ||
+      msg?.type === "OMNI_LIST_SELECTED"
+    ) {
       const sel = msg.selection;
       if (!sel) return;
-      const dup = state.selections.some((s) => s.containerPath === sel.containerPath);
+      const dup = state.selections.some(
+        (s) => s.containerPath === sel.containerPath,
+      );
       if (!dup) state.selections.push(sel);
       state.picking = true;
       state.selectionDone = false;
@@ -1384,7 +1527,8 @@
       state.actionSelector = msg.actionSelector;
       renderListState();
     }
-    if (msg?.type === "OMNI_PICKER_CANCELLED") {      els.buttonBanner.classList.add("is-hidden");
+    if (msg?.type === "OMNI_PICKER_CANCELLED") {
+      els.buttonBanner.classList.add("is-hidden");
       if (state.picking && !state.selectionDone) {
         state.picking = false;
         if (!state.selections.length) resetBlockSelection();

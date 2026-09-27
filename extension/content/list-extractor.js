@@ -1,5 +1,6 @@
 (() => {
-  const OMNI_VERSION = 13;
+  const OMNI_VERSION = globalThis.OMNI_LIST_EXTRACTOR_VERSION;
+  if (!OMNI_VERSION) return;
   if (window.__omniListExtractorVersion === OMNI_VERSION) return;
   if (typeof window.__omniListExtractorCleanup === "function") {
     try {
@@ -13,7 +14,7 @@
   const GOLD = "#d4af37";
   const GREEN = "#5ce0d0";
   const LOAD_MORE_RE =
-    /load\s*more|show\s*more|show\s*all|view\s*more|see\s*more|more\s*results|more\s*items|more\s*games|ver\s*mais|mostrar\s*mais|carregar\s*mais|exibir\s*mais|ver\s*tudo|mostrar\s*tudo|carregar\s*tudo|mais\s*resultados|mais\s*itens|mais\s*jogos|mais\s*roms|carregar|infinite|próxim[oa]s?|seguintes?|\bnext\b/i;
+    /load\s*more|show\s*more|show\s*all|view\s*more|see\s*more|more\s*results|more\s*items|ver\s*mais|mostrar\s*mais|carregar\s*mais|exibir\s*mais|ver\s*tudo|mostrar\s*tudo|carregar\s*tudo|mais\s*resultados|mais\s*itens|carregar|infinite/i;
   const LOAD_MORE_SOFT_RE =
     /\bmais\b|\bmore\b|\bload\b|\bcarregar\b|\bmostrar\b|\bexibir\b|\bexpand/i;
   const NOISE_CLASS =
@@ -139,7 +140,12 @@
     const svg = document.createElementNS(ns, "svg");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
-    Object.assign(svg.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
+    Object.assign(svg.style, {
+      position: "absolute",
+      inset: "0",
+      width: "100%",
+      height: "100%",
+    });
 
     const defs = document.createElementNS(ns, "defs");
     const mask = document.createElementNS(ns, "mask");
@@ -227,7 +233,11 @@
     for (const sel of activeSelections()) {
       for (const el of queryItems(sel, "block")) items.push(el);
     }
-    if (items.length) paintListHighlight(items, label || `${activeSelections().length} block(s) selected`);
+    if (items.length)
+      paintListHighlight(
+        items,
+        label || `${activeSelections().length} block(s) selected`,
+      );
   }
 
   function paintListHighlight(items, label) {
@@ -307,14 +317,22 @@
   function visible(el) {
     if (!(el instanceof Element)) return false;
     const st = getComputedStyle(el);
-    if (st.display === "none" || st.visibility === "hidden" || Number(st.opacity) === 0) return false;
+    if (
+      st.display === "none" ||
+      st.visibility === "hidden" ||
+      Number(st.opacity) === 0
+    )
+      return false;
     const r = el.getBoundingClientRect();
     return r.width > 8 && r.height > 8;
   }
 
   function stableClasses(el) {
     return [...el.classList]
-      .filter((c) => c && !NOISE_CLASS.test(c) && !HASH_CLASS.test(c) && c.length < 48)
+      .filter(
+        (c) =>
+          c && !NOISE_CLASS.test(c) && !HASH_CLASS.test(c) && c.length < 48,
+      )
       .sort();
   }
 
@@ -374,7 +392,10 @@
     if (kids.length < 3) return null;
 
     let best = null;
-    const seeds = preferredSeed && kids.includes(preferredSeed) ? [preferredSeed, ...kids] : kids;
+    const seeds =
+      preferredSeed && kids.includes(preferredSeed)
+        ? [preferredSeed, ...kids]
+        : kids;
 
     for (const seed of seeds.slice(0, 24)) {
       for (const threshold of [0.5, 0.34, 0.2]) {
@@ -408,14 +429,19 @@
   function discoverLists() {
     const roots = [
       document.body,
-      ...document.querySelectorAll("main, section, article, ul, ol, [role='list'], [class*='grid'], [class*='list'], [class*='cards'], [class*='products'], [class*='items']"),
+      ...document.querySelectorAll(
+        "main, section, article, ul, ol, [role='list'], [class*='grid'], [class*='list'], [class*='cards'], [class*='products'], [class*='items']",
+      ),
     ];
     const seen = new Set();
     const found = [];
 
     for (const root of roots) {
       if (!(root instanceof Element)) continue;
-      const walkerParents = [root, ...root.querySelectorAll("div, ul, ol, section, main")];
+      const walkerParents = [
+        root,
+        ...root.querySelectorAll("div, ul, ol, section, main"),
+      ];
       for (const parent of walkerParents) {
         if (seen.has(parent) || parent.children.length < 3) continue;
         seen.add(parent);
@@ -428,7 +454,9 @@
     const deduped = [];
     for (const c of found) {
       const overlaps = deduped.some(
-        (d) => d.container.contains(c.container) || c.container.contains(d.container),
+        (d) =>
+          d.container.contains(c.container) ||
+          c.container.contains(d.container),
       );
       if (!overlaps) deduped.push(c);
       if (deduped.length >= 8) break;
@@ -458,9 +486,11 @@
           return stable.every((cls) => c.classList.contains(cls));
         });
         if (same.length > 1) {
-          part += `:nth-of-type(${[...parent.children]
-            .filter((c) => c.tagName === cur.tagName)
-            .indexOf(cur) + 1})`;
+          part += `:nth-of-type(${
+            [...parent.children]
+              .filter((c) => c.tagName === cur.tagName)
+              .indexOf(cur) + 1
+          })`;
         }
       }
       parts.unshift(part);
@@ -495,7 +525,12 @@
   }
 
   function queryItems(sel, scope = "block") {
-    if (scope === "page" || scope === "load-more" || scope === "pagination" || scope === "full-page") {
+    if (
+      scope === "page" ||
+      scope === "load-more" ||
+      scope === "pagination" ||
+      scope === "full-page"
+    ) {
       return queryItemsPageWide(sel);
     }
     const container = resolveContainer(sel);
@@ -504,7 +539,9 @@
     let kids = [...container.children].filter((c) => itemMatches(c, sel));
     if (kids.length >= 2) return kids;
 
-    const nested = [...container.querySelectorAll(":scope > * > *")].filter((c) => itemMatches(c, sel));
+    const nested = [...container.querySelectorAll(":scope > * > *")].filter(
+      (c) => itemMatches(c, sel),
+    );
     if (nested.length >= 3) {
       const byParent = new Map();
       for (const el of nested) {
@@ -521,7 +558,10 @@
     }
 
     if (sel.tag) {
-      const selector = [sel.tag, ...(sel.sharedClasses || []).map((c) => `.${CSS.escape(c)}`)].join("");
+      const selector = [
+        sel.tag,
+        ...(sel.sharedClasses || []).map((c) => `.${CSS.escape(c)}`),
+      ].join("");
       try {
         const all = [...container.querySelectorAll(selector)].filter(visible);
         if (all.length >= 3) return all;
@@ -548,19 +588,25 @@
     }
     let matched = [];
     try {
-      matched = [...document.querySelectorAll(sel.tag)].filter((el) => itemMatches(el, sel));
+      matched = [...document.querySelectorAll(sel.tag)].filter((el) =>
+        itemMatches(el, sel),
+      );
     } catch {
       matched = [];
     }
     // Prefer outer items (drop nested matches inside another match)
-    return matched.filter((el) => !matched.some((other) => other !== el && other.contains(el)));
+    return matched.filter(
+      (el) => !matched.some((other) => other !== el && other.contains(el)),
+    );
   }
 
-  function absoluteUrl(href) {
+  function safeHttpUrl(href) {
     try {
-      return new URL(href, location.href).href;
+      const url = new URL(href, location.href);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+      return url.href;
     } catch {
-      return href || "";
+      return "";
     }
   }
 
@@ -573,7 +619,8 @@
         const p = n.parentElement;
         if (!p) return NodeFilter.FILTER_REJECT;
         const tag = p.tagName.toLowerCase();
-        if (["script", "style", "noscript", "svg"].includes(tag)) return NodeFilter.FILTER_REJECT;
+        if (["script", "style", "noscript", "svg"].includes(tag))
+          return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
@@ -583,7 +630,7 @@
     }
 
     const links = [...el.querySelectorAll("a[href]")]
-      .map((a) => absoluteUrl(a.getAttribute("href")))
+      .map((a) => safeHttpUrl(a.getAttribute("href")))
       .filter(Boolean);
     const images = [];
     el.querySelectorAll("img").forEach((img) => {
@@ -593,22 +640,30 @@
         img.getAttribute("data-src") ||
         img.getAttribute("data-lazy-src") ||
         "";
-      if (src) images.push(absoluteUrl(src));
+      const safe = src ? safeHttpUrl(src) : "";
+      if (safe) images.push(safe);
     });
     el.querySelectorAll("source[srcset], img[srcset]").forEach((node) => {
       const srcset = node.getAttribute("srcset") || "";
       const first = srcset.split(",")[0]?.trim().split(/\s+/)[0];
-      if (first) images.push(absoluteUrl(first));
+      const safe = first ? safeHttpUrl(first) : "";
+      if (safe) images.push(safe);
     });
 
     const title = pickTitle(el, texts);
     const description = texts.slice(0, 4).join(" · ");
-    const price = texts.find((t) => /(?:R\$|\$|€|£)\s?\d/.test(t) || /^\d+[.,]\d{2}$/.test(t)) || "";
+    const price =
+      texts.find(
+        (t) => /(?:R\$|\$|€|£)\s?\d/.test(t) || /^\d+[.,]\d{2}$/.test(t),
+      ) || "";
     return {
       title,
       description,
       price,
-      url: links[0] || (el.tagName === "A" ? absoluteUrl(el.getAttribute("href")) : "") || "",
+      url:
+        links[0] ||
+        (el.tagName === "A" ? safeHttpUrl(el.getAttribute("href")) : "") ||
+        "",
       image: images[0] || "",
       texts,
       links: [...new Set(links)],
@@ -626,7 +681,9 @@
       "[class*='title' i], [class*='name' i], [itemprop='name'], [data-title]",
     );
     if (named) {
-      const t = (named.getAttribute("data-title") || named.textContent || "").trim().replace(/\s+/g, " ");
+      const t = (named.getAttribute("data-title") || named.textContent || "")
+        .trim()
+        .replace(/\s+/g, " ");
       if (t) return t;
     }
     const aria = (el.getAttribute("aria-label") || "").trim();
@@ -638,8 +695,7 @@
       (t) =>
         t.length >= 2 &&
         !/^[\d,.\s]+$/.test(t) &&
-        !/^\d+[.,]\d+\s*ROM$/i.test(t) &&
-        !/^ROM$/i.test(t),
+        !/^\d+(?:[.,]\d+)?\s*[a-z]{1,4}$/i.test(t),
     );
     return meaningful || texts[0] || "";
   }
@@ -660,10 +716,6 @@
     return false;
   }
 
-  async function autoScroll(onTick) {
-    await expandPageContent(onTick, { preferScroll: true });
-  }
-
   function isScrollable(el) {
     if (!(el instanceof Element)) return false;
     const st = getComputedStyle(el);
@@ -678,7 +730,14 @@
       if (isScrollable(el)) roots.push(el);
       el = el.parentElement;
     }
-    for (const sel of ["main", "[role='main']", "#content", ".content", ".main", "[class*='scroll']"]) {
+    for (const sel of [
+      "main",
+      "[role='main']",
+      "#content",
+      ".content",
+      ".main",
+      "[class*='scroll']",
+    ]) {
       try {
         document.querySelectorAll(sel).forEach((node) => {
           if (isScrollable(node)) roots.push(node);
@@ -687,7 +746,8 @@
         /* ignore */
       }
     }
-    if (isScrollable(document.scrollingElement)) roots.push(document.scrollingElement);
+    if (isScrollable(document.scrollingElement))
+      roots.push(document.scrollingElement);
     return [...new Set(roots)];
   }
 
@@ -702,7 +762,9 @@
       seen.add(el);
       merged.push(el);
     }
-    return merged.filter((el) => !merged.some((o) => o !== el && o.contains(el)));
+    return merged.filter(
+      (el) => !merged.some((o) => o !== el && o.contains(el)),
+    );
   }
 
   function pageContentHeight() {
@@ -812,8 +874,49 @@
     return r.bottom + window.scrollY;
   }
 
-  function scoreLoadMoreCandidate(el, listBottom) {
-    if (!el || !visible(el) || isDisabledControl(el)) return -Infinity;
+  function isNavigatingAnchor(el) {
+    if (!(el instanceof Element) || el.tagName !== "A") return false;
+    const href = (el.getAttribute("href") || "").trim();
+    if (!href || href === "#" || href.startsWith("#")) return false;
+    if (/^javascript:\s*(?:void\s*\(\s*0?\s*\)|void\s+0|;)\s*$/i.test(href))
+      return false;
+    try {
+      const url = new URL(href, location.href);
+      if (url.protocol === "javascript:") return true;
+      const here = new URL(location.href);
+      const sameDocument =
+        url.origin === here.origin &&
+        url.pathname === here.pathname &&
+        url.search === here.search;
+      return !sameDocument;
+    } catch {
+      return true;
+    }
+  }
+
+  function isInsideDetectedItem(el, items) {
+    if (!(el instanceof Element)) return false;
+    const list = items || gatherPageListElements();
+    return list.some((item) => item !== el && item.contains(el));
+  }
+
+  function isDetectedListItem(el, items) {
+    if (!(el instanceof Element)) return false;
+    const list = items || gatherPageListElements();
+    return list.some((item) => item === el);
+  }
+
+  function canAutoClickLoadMore(el, items) {
+    if (!el || isDisabledControl(el)) return false;
+    if (isDetectedListItem(el, items) || isInsideDetectedItem(el, items))
+      return false;
+    if (isNavigatingAnchor(el)) return false;
+    return true;
+  }
+
+  function scoreLoadMoreCandidate(el, listBottom, items) {
+    if (!el || !visible(el) || !canAutoClickLoadMore(el, items))
+      return -Infinity;
     let score = 0;
     const label = controlLabel(el);
     const cls = `${el.className || ""} ${el.id || ""} ${el.getAttribute("data-testid") || ""}`;
@@ -821,7 +924,11 @@
     if (LOAD_MORE_RE.test(label)) score += 55;
     else if (LOAD_MORE_SOFT_RE.test(label) && label.length < 48) score += 22;
 
-    if (/load[-_]?more|show[-_]?more|btn[-_]?more|loadmore|showmore|infinite|carregar|ver-mais|vermais/i.test(cls)) {
+    if (
+      /load[-_]?more|show[-_]?more|btn[-_]?more|loadmore|showmore|infinite|carregar|ver-mais|vermais/i.test(
+        cls,
+      )
+    ) {
       score += 45;
     }
 
@@ -832,22 +939,25 @@
       else if (absTop + 40 < listBottom - 600) score -= 20;
     }
 
-    if (el.closest("nav, header, [role='navigation'], .navbar, .menu")) score -= 45;
+    if (el.closest("nav, header, [role='navigation'], .navbar, .menu"))
+      score -= 45;
     if (el.closest("footer") && LOAD_MORE_RE.test(label)) score += 8;
 
     const container = resolveContainer(selection);
-    if (container) {
+    if (container && !isInsideDetectedItem(el, items)) {
       if (container.contains(el)) score += 18;
       else if (container.parentElement?.contains(el)) score += 10;
     }
 
-    // Prefer real buttons / role=button over plain links in menus
     const tag = el.tagName.toLowerCase();
     if (tag === "button" || el.getAttribute("role") === "button") score += 8;
-    if (tag === "a" && (el.getAttribute("href") || "#") === "#") score += 6;
+    if (tag === "a" && !isNavigatingAnchor(el)) score += 6;
 
-    // Truncated / collapsed expanders often sit under the list
-    if (/expand|collapse|toggle|accordion/i.test(cls) && listBottom && absTop >= listBottom - 120) {
+    if (
+      /expand|collapse|toggle|accordion/i.test(cls) &&
+      listBottom &&
+      absTop >= listBottom - 120
+    ) {
       score += 15;
     }
 
@@ -855,11 +965,13 @@
   }
 
   function findLoadMoreButton() {
-    const actionSel = selection?.actionSelector || selections[0]?.actionSelector;
+    const items = gatherPageListElements();
+    const actionSel =
+      selection?.actionSelector || selections[0]?.actionSelector;
     if (actionSel) {
       try {
         const el = document.querySelector(actionSel);
-        if (el && visible(el) && !isDisabledControl(el)) return el;
+        if (el && visible(el) && canAutoClickLoadMore(el, items)) return el;
       } catch {
         /* ignore */
       }
@@ -888,7 +1000,9 @@
     ];
 
     const interactive = [
-      ...document.querySelectorAll("button, a, [role='button'], input[type='button'], input[type='submit']"),
+      ...document.querySelectorAll(
+        "button, a, [role='button'], input[type='button'], input[type='submit']",
+      ),
     ];
 
     const seen = new Set();
@@ -913,7 +1027,7 @@
     let best = null;
     let bestScore = 0;
     for (const el of pool) {
-      const s = scoreLoadMoreCandidate(el, listBottom);
+      const s = scoreLoadMoreCandidate(el, listBottom, items);
       if (s > bestScore) {
         bestScore = s;
         best = el;
@@ -924,13 +1038,19 @@
   }
 
   async function clickExpandControl(btn) {
-    if (!btn) return false;
+    if (!btn || !canAutoClickLoadMore(btn)) return false;
     try {
       btn.scrollIntoView({ block: "center", inline: "nearest" });
       await sleep(180);
       if (typeof btn.click === "function") btn.click();
       else {
-        btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+        btn.dispatchEvent(
+          new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          }),
+        );
       }
       return true;
     } catch {
@@ -963,7 +1083,8 @@
       else stableClicks = 0;
       lastCount = Math.max(lastCount, count);
 
-      const gone = !document.contains(btn) || !visible(btn) || isDisabledControl(btn);
+      const gone =
+        !document.contains(btn) || !visible(btn) || isDisabledControl(btn);
       if (gone) {
         // New button may appear after load — loop continues
         stableClicks = Math.min(stableClicks, 1);
@@ -1006,56 +1127,110 @@
     }
   }
 
-  async function clickLoadMore(onTick) {
-    await expandPageContent(onTick, { preferScroll: false });
+  function isShortNextLabel(text) {
+    const label = String(text || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!label || label.length > 32) return false;
+    return (
+      /^(next|próxim[oa]|seguinte|older|newer|>|»|›|→)$/i.test(label) ||
+      /^(next|próxima|próximo|seguinte)\s+(page|página)$/i.test(label)
+    );
+  }
+
+  function outsideDetectedItems(el, items) {
+    return !isDetectedListItem(el, items) && !isInsideDetectedItem(el, items);
   }
 
   function findNextButton() {
-    const actionSel = selection?.actionSelector || selections[0]?.actionSelector;
+    const items = gatherPageListElements();
+    const actionSel =
+      selection?.actionSelector || selections[0]?.actionSelector;
     if (actionSel) {
-      const el = document.querySelector(actionSel);
-      if (el && !isDisabledControl(el)) return el;
+      try {
+        const el = document.querySelector(actionSel);
+        if (el && !isDisabledControl(el)) return el;
+      } catch {
+        /* ignore invalid selector */
+      }
     }
-    const relNext = document.querySelector('a[rel="next"]');
-    if (relNext && visible(relNext) && !isDisabledControl(relNext)) return relNext;
+    const relNext = [...document.querySelectorAll('a[rel~="next"]')].find(
+      (el) =>
+        visible(el) &&
+        !isDisabledControl(el) &&
+        outsideDetectedItems(el, items),
+    );
+    if (relNext) return relNext;
 
-    const candidates = [...document.querySelectorAll("a, button, [role='button']")].filter(visible);
-    const byLabel =
-      candidates.find((el) => /^(next|próxim[oa]|seguinte|>|»|›)$/i.test((el.textContent || "").trim())) ||
-      candidates.find((el) => /next|próxim|seguinte/i.test((el.textContent || "").trim())) ||
-      candidates.find((el) => /next|próxim|seguinte/i.test(el.getAttribute("aria-label") || ""));
-    if (byLabel && !isDisabledControl(byLabel)) return byLabel;
+    const candidates = [
+      ...document.querySelectorAll("a, button, [role='button']"),
+    ].filter((el) => visible(el) && outsideDetectedItems(el, items));
+    const byLabel = candidates.find((el) => {
+      if (isDisabledControl(el)) return false;
+      return (
+        isShortNextLabel(el.textContent) ||
+        isShortNextLabel(el.getAttribute("aria-label"))
+      );
+    });
+    if (byLabel) return byLabel;
 
     const current = candidates.find(
       (el) =>
         el.getAttribute("aria-current") === "page" ||
-        /\b(active|current|selected|is-active|is-current)\b/i.test(el.className || ""),
+        /\b(active|current|selected|is-active|is-current)\b/i.test(
+          el.className || "",
+        ),
     );
     if (current) {
       const n = parseInt((current.textContent || "").trim(), 10);
       if (Number.isFinite(n)) {
-        const nextNum = candidates.find((el) => (el.textContent || "").trim() === String(n + 1));
+        const nextNum = candidates.find(
+          (el) => (el.textContent || "").trim() === String(n + 1),
+        );
         if (nextNum && !isDisabledControl(nextNum)) return nextNum;
       }
     }
     return null;
   }
 
-  async function clickLoadMore(onTick) {
-    let stable = 0;
-    let last = queryItemsActive("full-page").length;
-    for (let i = 0; i < 60 && !stopRequested; i++) {
-      const btn = findLoadMoreButton();
-      if (!btn) break;
-      btn.click();
-      await sleep(700);
-      const count = queryItemsActive("full-page").length;
-      onTick?.(count);
-      if (count <= last) stable += 1;
-      else stable = 0;
-      last = count;
-      if (stable >= 3) break;
+  function describeNext(el) {
+    if (!el || isDisabledControl(el)) return null;
+    if (isNavigatingAnchor(el)) {
+      const href = safeHttpUrl(el.getAttribute("href"));
+      if (!href) return null;
+      return { kind: "navigate", href };
     }
+    return { kind: "spa" };
+  }
+
+  function snapshotCurrentPage() {
+    if (!ensureDominantSelection()) {
+      return { ok: false, error: "No list detected on this page" };
+    }
+    const rows = extractRows("pagination");
+    const next = describeNext(findNextButton());
+    return {
+      ok: true,
+      rows,
+      pageTitle: document.title,
+      pageUrl: location.href,
+      next,
+    };
+  }
+
+  async function activateSpaNext() {
+    const next = findNextButton();
+    if (!next || isNavigatingAnchor(next)) return { ok: true, changed: false };
+    const beforeUrl = location.href;
+    const beforeRows = extractRows("pagination");
+    const beforeFirstKey = beforeRows[0] ? rowKey(beforeRows[0]) : "";
+    try {
+      next.click();
+    } catch (err) {
+      return { ok: false, changed: false, error: String(err) };
+    }
+    const changed = await waitForPageChange(beforeUrl, beforeFirstKey);
+    return { ok: true, changed };
   }
 
   function activeSelections() {
@@ -1124,7 +1299,9 @@
       }
     }
     // Prefer outer cards (drop nested matches)
-    return out.filter((el) => !out.some((other) => other !== el && other.contains(el)));
+    return out.filter(
+      (el) => !out.some((other) => other !== el && other.contains(el)),
+    );
   }
 
   function extractRowsFromElements(elements) {
@@ -1174,12 +1351,23 @@
     stopRequested = false;
     let paradigm = mode || "blocks";
     if (paradigm === "block") paradigm = "blocks";
-    if (paradigm === "page" || paradigm === "load-more" || paradigm === "auto-scroll") {
+    if (
+      paradigm === "page" ||
+      paradigm === "load-more" ||
+      paradigm === "auto-scroll"
+    ) {
       paradigm = "full-page";
     }
 
     function report(rows, meta = {}) {
-      onProgress?.(rows.length, rows.slice(-8).map((r) => r.image).filter(Boolean), meta);
+      onProgress?.(
+        rows.length,
+        rows
+          .slice(-8)
+          .map((r) => r.image)
+          .filter(Boolean),
+        meta,
+      );
     }
 
     if (paradigm === "blocks") {
@@ -1190,7 +1378,12 @@
 
     if (paradigm === "full-page") {
       if (!ensureDominantSelection()) {
-        return { rows: [], pages: null, paradigm, error: "No list detected on this page" };
+        return {
+          rows: [],
+          pages: null,
+          paradigm,
+          error: "No list detected on this page",
+        };
       }
       const fingerprint = new Set();
       const rows = [];
@@ -1212,7 +1405,12 @@
     if (paradigm === "filter") {
       const tokens = normalizeFilterTokens(options.filterTokens);
       if (!tokens.length) {
-        return { rows: [], pages: null, paradigm, error: "Add at least one letter or word filter" };
+        return {
+          rows: [],
+          pages: null,
+          paradigm,
+          error: "Add at least one letter or word filter",
+        };
       }
 
       // Page-wide: merge every discovered list, then keep rows whose dataset title matches
@@ -1230,7 +1428,9 @@
           seen.add(el);
           merged.push(el);
         }
-        return merged.filter((el) => !merged.some((o) => o !== el && o.contains(el)));
+        return merged.filter(
+          (el) => !merged.some((o) => o !== el && o.contains(el)),
+        );
       }
 
       function ingestFiltered() {
@@ -1251,43 +1451,22 @@
     }
 
     if (paradigm === "pagination") {
-      if (!ensureDominantSelection()) {
-        return { rows: [], pages: null, paradigm, error: "No list detected on this page" };
-      }
-      const pagesAll = options.pagesAll === true || !options.pageLimit;
-      const maxPages = pagesAll
-        ? 200
-        : Math.min(500, Math.max(1, Number(options.pageLimit) || 5));
-      const pages = [];
-      const allRows = [];
-
-      for (let i = 0; i < maxPages && !stopRequested; i++) {
-        const pageRows = extractRows("pagination");
-        pages.push({
-          pageIndex: i + 1,
-          pageUrl: location.href,
-          pageTitle: document.title,
-          rows: pageRows,
-        });
-        allRows.push(...pageRows);
-        report(allRows, { pageIndex: i + 1, pageCount: pages.length });
-
-        const next = findNextButton();
-        if (!next) break;
-        const beforeUrl = location.href;
-        const beforeFirstKey = pageRows[0] ? rowKey(pageRows[0]) : "";
-        next.click();
-        const changed = await waitForPageChange(beforeUrl, beforeFirstKey);
-        if (!changed) break;
-
-        const after = extractRows("pagination");
-        const same =
-          after.length === pageRows.length &&
-          after.every((r, idx) => rowKey(r) === rowKey(pageRows[idx] || {}));
-        if (same && location.href === beforeUrl) break;
-      }
-
-      return { rows: allRows, pages, paradigm };
+      const snap = snapshotCurrentPage();
+      if (!snap.ok)
+        return { rows: [], pages: null, paradigm, error: snap.error };
+      const page = {
+        pageIndex: 1,
+        pageUrl: snap.pageUrl,
+        pageTitle: snap.pageTitle,
+        rows: snap.rows,
+      };
+      report(snap.rows, { pageIndex: 1, pageCount: 1 });
+      return {
+        rows: snap.rows,
+        pages: [page],
+        paradigm,
+        next: snap.next,
+      };
     }
 
     const rows = extractRows("blocks");
@@ -1298,13 +1477,22 @@
   function onMove(e) {
     if (!pickerActive && !buttonPickerActive) return;
     const t = document.elementFromPoint(e.clientX, e.clientY);
-    if (!t || t === highlightEl || t === tooltipEl || itemOutlineRoot?.contains(t)) return;
+    if (
+      !t ||
+      t === highlightEl ||
+      t === tooltipEl ||
+      itemOutlineRoot?.contains(t)
+    )
+      return;
 
     if (buttonPickerActive) {
       const btn = t.closest("button, a, [role='button']") || t;
       if (!visible(btn)) return;
       currentCandidate = { type: "button", el: btn };
-      paintButtonHighlight(btn, `Button: ${(btn.textContent || "").trim().slice(0, 40) || "select"}`);
+      paintButtonHighlight(
+        btn,
+        `Button: ${(btn.textContent || "").trim().slice(0, 40) || "select"}`,
+      );
       return;
     }
 
@@ -1355,7 +1543,9 @@
       };
 
       if (multiPick) {
-        const dup = selections.some((s) => s.containerPath === block.containerPath);
+        const dup = selections.some(
+          (s) => s.containerPath === block.containerPath,
+        );
         if (!dup) selections.push(block);
         selection = selections[selections.length - 1];
         chrome.runtime.sendMessage({
@@ -1374,7 +1564,10 @@
       selection = block;
       selections = [block];
       endPicker();
-      chrome.runtime.sendMessage({ type: "OMNI_LIST_SELECTED", selection: block });
+      chrome.runtime.sendMessage({
+        type: "OMNI_LIST_SELECTED",
+        selection: block,
+      });
     }
   }
 
@@ -1444,11 +1637,12 @@
     tooltipEl?.remove();
     itemOutlineRoot?.remove();
     highlightEl = tooltipEl = itemOutlineRoot = null;
+    chrome.runtime.onMessage.removeListener(onRuntimeMessage);
     delete window.__omniListExtractorVersion;
     delete window.__omniListExtractorCleanup;
   };
 
-  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  function onRuntimeMessage(msg, _sender, sendResponse) {
     (async () => {
       try {
         if (msg?.type === "OMNI_PING") {
@@ -1510,6 +1704,41 @@
           sendResponse({ ok: true });
           return;
         }
+        if (msg?.type === "OMNI_PREVIEW_LISTS") {
+          const lists = discoverLists();
+          const preview = lists.map((list) => ({
+            containerPath: cssPath(list.container),
+            tag: list.tag,
+            sharedClasses: list.sharedClasses,
+            itemSignature: list.signature,
+            itemCount: list.itemCount,
+          }));
+          sendResponse({ ok: true, selections: preview });
+          return;
+        }
+        if (msg?.type === "OMNI_PAGE_SNAPSHOT") {
+          if (msg.actionSelector) {
+            if (!selection) selection = {};
+            selection.actionSelector = msg.actionSelector;
+            selections = selections.map((item) => ({
+              ...item,
+              actionSelector: msg.actionSelector,
+            }));
+          }
+          stopRequested = false;
+          sendResponse(snapshotCurrentPage());
+          return;
+        }
+        if (msg?.type === "OMNI_ACTIVATE_SPA_NEXT") {
+          if (msg.actionSelector) {
+            if (!selection) selection = {};
+            selection.actionSelector = msg.actionSelector;
+          }
+          stopRequested = false;
+          const activated = await activateSpaNext();
+          sendResponse(activated);
+          return;
+        }
         if (msg?.type === "OMNI_RUN_EXTRACT") {
           const mode = msg.mode || msg.paradigm || "blocks";
           if (Array.isArray(msg.selections) && msg.selections.length) {
@@ -1522,7 +1751,10 @@
 
           if (msg.actionSelector) {
             if (selection) selection.actionSelector = msg.actionSelector;
-            selections = selections.map((s) => ({ ...s, actionSelector: msg.actionSelector }));
+            selections = selections.map((s) => ({
+              ...s,
+              actionSelector: msg.actionSelector,
+            }));
           }
 
           const needsBlocks = mode === "blocks" || mode === "block";
@@ -1533,7 +1765,10 @@
           if (mode === "filter") {
             const tokens = normalizeFilterTokens(msg.filterTokens);
             if (!tokens.length) {
-              sendResponse({ ok: false, error: "Add at least one letter or word filter" });
+              sendResponse({
+                ok: false,
+                error: "Add at least one letter or word filter",
+              });
               return;
             }
           }
@@ -1559,7 +1794,11 @@
             sendResponse({ ok: false, error: result.error });
             return;
           }
-          if (Array.isArray(msg.excludeKeys) && msg.excludeKeys.length && Array.isArray(result.rows)) {
+          if (
+            Array.isArray(msg.excludeKeys) &&
+            msg.excludeKeys.length &&
+            Array.isArray(result.rows)
+          ) {
             const ex = new Set(msg.excludeKeys);
             result.rows = result.rows.filter((r) => {
               const k = `${r.url || ""}|${r.title || ""}|${r.image || ""}`;
@@ -1583,5 +1822,7 @@
       }
     })();
     return true;
-  });
+  }
+
+  chrome.runtime.onMessage.addListener(onRuntimeMessage);
 })();
