@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Product grid</title>
+    <style>
+      body { font-family: sans-serif; margin: 24px; }
+      .products { display: grid; grid-template-columns: repeat(3, 200px); gap: 12px; }
+      .card { display: block; min-height: 72px; padding: 8px; border: 1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="products" id="grid">
+        <article class="card"><a href="/product/1"><h3>Widget One</h3></a><p>$10.00</p></article>
+        <article class="card"><a href="/product/2"><h3>Widget Two</h3></a><p>$12.00</p></article>
+        <article class="card"><a href="/product/3"><h3>Widget Three</h3></a><p>$14.00</p></article>
+        <article class="card"><a href="/product/4"><h3>Widget Four</h3></a><p>$16.00</p></article>
+        <article class="card"><a href="/product/5"><h3>Widget Five</h3></a><p>$18.00</p></article>
+        <article class="card">
+          <a href="/product/6"><h3>Widget Six</h3></a>
+          <a href="/outlet/next">Next</a>
+          <p>$20.00</p>
+        </article>
+      </div>
+    </main>
+    <p><a id="decoy-next" href="/decoy-next.html">Next</a></p>
+    <p><a id="decoy-games" href="/games.html">more games</a></p>
+    <p><a id="decoy-roms" href="/roms.html">mais roms</a></p>
+  </body>
+</html>

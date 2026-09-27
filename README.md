@@ -32,7 +32,7 @@ Omni reads the page. **You decide what gets extracted and where it goes.**
 | Without Omni Extractor | With Omni Extractor |
 | --- | --- |
 | Copy-paste row by row into a spreadsheet | Pick the list once; every item becomes a row |
-| "Load more" and pagination break manual copying | Full page and Pages modes keep loading or walk to the next page |
+| "Load more" and pagination break manual copying | Full page grows in-page lists; Pages follows Next across reloads |
 | Scripts and selectors for every site | Visual picking with Blocks; no code |
 | Data sent to a third-party cloud | Datasets stored locally in the Ship until you export |
 | Guessing what a tool expects next | Omni, the mascot, gives tips for the step you're on |
@@ -125,8 +125,8 @@ Extractors        content script        Ship (local)         CSV
 | Mode | Use it when | What happens |
 | --- | --- | --- |
 | **Blocks** (default) | You want exactly the regions you point at | Select → click list blocks → Done → extract |
-| **Full page** | The list grows with "load more" or infinite scroll | Detects the main list and keeps loading as the page grows |
-| **Pages** | Results are split across numbered pages | Walks pagination (optionally pick the Next button) and saves each page into a collection |
+| **Full page** | The list grows with "Load more" / "Carregar mais" or infinite scroll | Detects the main list and clicks in-page controls or scrolls. It does not follow product links or other anchors that open a different document |
+| **Pages** | Results are split across numbered pages | Follows Next across full page loads and in-page (SPA) pagination, saves each page into a collection as it goes, and stops at your page limit or when you press Stop |
 | **Filter** | You only want items whose titles match some terms | Keeps items matching words or letters; separate terms with `;` |
 
 **Focus** spotlights the selected blocks on the page so you can confirm the selection before extracting.
@@ -144,6 +144,8 @@ Extractors        content script        Ship (local)         CSV
 ### Local-first — your data stays with you
 
 Datasets and collections are saved in browser storage inside the **Ship** (the cargo hold). Nothing leaves your machine until you export. No account is required to extract.
+
+Only `http` and `https` links are stored or shown. Other URL schemes, including `javascript:`, are dropped. CSV export prefixes cells that start with `=`, `+`, `-`, `@`, tab, or carriage return with a single quote so spreadsheet apps treat them as text. Opening a collection shows every page and **Export CSV** downloads them as one file. Datasets that still belong to a collection are kept even when loose datasets are trimmed to the newest 100.
 
 ### A guide that follows you
 
@@ -167,7 +169,7 @@ A cyberpunk-style HUD skin (chamfered panels, corner brackets, scanlines, mono t
 | **Notifications** | Header | Product notices; mark as read or clear |
 | **Settings** | Header | Panel preferences |
 | **Extractors** | Nav tab | Choose a tool (List Extractor) and its mode |
-| **Ship** | Nav tab / footer | Cargo hold for datasets and collections; open the table and export CSV |
+| **Ship** | Nav tab / footer | Cargo hold for datasets and collections; open a collection to see every page and export one CSV |
 | **Cloud** | Nav tab / footer | Optional sync and remote dataset tools (coming later, paid plan) |
 | **Mascot** | Header | Click for context-aware tips |
 
@@ -178,7 +180,8 @@ A cyberpunk-style HUD skin (chamfered panels, corner brackets, scanlines, mono t
 ```text
 extension/
   manifest.json          # MV3 extension manifest
-  background.js          # Service worker (side panel + table opener)
+  background.js          # Service worker (side panel, pagination runs, table opener)
+  shared/                # Version, storage retention, CSV helpers
   sidepanel/             # Side panel UI
     index.html           #   structure (header, nav, views, footer)
     styles.css           #   base visual system
@@ -188,6 +191,7 @@ extension/
   data/                  # Full data table + CSV export
   icons/                 # Logo, mascot, tip art, wallpapers
   assets/fonts/          # Self-hosted UI fonts
+tests/                   # Playwright fixtures and Chromium extension tests
 ```
 
 ---
@@ -199,7 +203,13 @@ extension/
 | Iterate on the side panel | Edit `extension/sidepanel/*`, then close and reopen the panel |
 | Change the content script | Reload the extension in `chrome://extensions` **and** refresh the target tab |
 | Preview the panel in a browser | `python -m http.server 8765 --directory extension`, then open `http://localhost:8765/sidepanel/index.html` (UI only; extension APIs aren't available there) |
-| Syntax-check scripts | `node --check extension/sidepanel/app.js` |
+| Install dev tools | `npm ci` (ESLint, Prettier, and Playwright; no production dependencies) |
+| Lint | `npm run lint` |
+| Format check | `npm run format:check` |
+| Format | `npm run format` |
+| Extension tests | `npx playwright install chromium`, then `npm test` |
+
+`npm test` launches Chromium with the unpacked `extension/` folder and runs it against local fixture pages (a product grid, a real Load more button, multi-page reloads, SPA pagination, and a formula-injection row). Lint and tests also run in GitHub Actions (`.github/workflows/ci.yml`).
 
 Conventions:
 

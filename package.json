@@ -1,0 +1,20 @@
+{
+  "name": "omni-extractor",
+  "private": true,
+  "version": "0.9.10",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write \"extension/**/*.js\" \"tests/**/*.js\" \"eslint.config.js\" \"playwright.config.js\"",
+    "format:check": "prettier --check \"extension/**/*.js\" \"tests/**/*.js\" \"eslint.config.js\" \"playwright.config.js\"",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@playwright/test": "^1.63.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2"
+  }
+}

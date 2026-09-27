@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Formula catalog</title>
+    <style>
+      body { font-family: sans-serif; margin: 24px; }
+      .products { display: grid; grid-template-columns: repeat(3, 220px); gap: 12px; }
+      .card { display: block; min-height: 72px; padding: 8px; border: 1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="products" id="grid">
+        <article class="card">
+          <h3>=HYPERLINK("https://evil.example","Click")</h3>
+          <a href="javascript:alert(1)">bad</a>
+          <a href="https://shop.example/item-1">Open</a>
+          <p>$3.00</p>
+        </article>
+        <article class="card"><a href="https://shop.example/item-2"><h3>Plain Two</h3></a><p>$4.00</p></article>
+        <article class="card"><a href="https://shop.example/item-3"><h3>Plain Three</h3></a><p>$5.00</p></article>
+      </div>
+    </main>
+  </body>
+</html>

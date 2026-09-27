@@ -17,3 +17,11 @@ extension/icons/logo-animated.webp
 .tmp_*
 _extract_*.py
 _notif_snip.txt
+
+# Retornatus local index (not source of truth)
+.retornatus/index/
+
+# Test output
+test-results/
+playwright-report/
+blob-report/

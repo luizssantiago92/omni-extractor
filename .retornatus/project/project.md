@@ -4,7 +4,7 @@ Retornatus continuity map for `omni-extractor`.
 
 ## Identity
 
-- Path: `C:\Users\c.barbosa.CELLAIRIS\Downloads\Luiz\Projetos\omni-extractor`
+- Path: repository root (`omni-extractor`)
 - README signal: # Omni Extractor
 
 ## Language / stack

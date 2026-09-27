@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Catalog page 1</title>
+    <style>
+      body { font-family: sans-serif; margin: 24px; }
+      .products { display: grid; grid-template-columns: repeat(3, 200px); gap: 12px; }
+      .card { display: block; min-height: 72px; padding: 8px; border: 1px solid #ccc; }
+      .pager { margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="products" id="grid">
+        <article class="card">
+          <a href="/product/trap"><h3>Alpha One</h3></a>
+          <a href="/product/trap-next">Next</a>
+          <p>$1.00</p>
+        </article>
+        <article class="card"><a href="/product/a2"><h3>Alpha Two</h3></a><p>$2.00</p></article>
+        <article class="card"><a href="/product/a3"><h3>Alpha Three</h3></a><p>$3.00</p></article>
+      </div>
+      <p class="pager"><a rel="next" href="page2.html">Next</a></p>
+    </main>
+  </body>
+</html>

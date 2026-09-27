@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Load more grid</title>
+    <style>
+      body { font-family: sans-serif; margin: 24px; }
+      .products { display: grid; grid-template-columns: repeat(3, 200px); gap: 12px; }
+      .card { display: block; min-height: 72px; padding: 8px; border: 1px solid #ccc; }
+      #load-more { margin-top: 16px; padding: 8px 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="products" id="grid">
+        <article class="card"><a href="/product/1"><h3>Widget One</h3></a><p>$10.00</p></article>
+        <article class="card"><a href="/product/2"><h3>Widget Two</h3></a><p>$12.00</p></article>
+        <article class="card"><a href="/product/3"><h3>Widget Three</h3></a><p>$14.00</p></article>
+        <article class="card"><a href="/product/4"><h3>Widget Four</h3></a><p>$16.00</p></article>
+        <article class="card"><a href="/product/5"><h3>Widget Five</h3></a><p>$18.00</p></article>
+        <article class="card"><a href="/product/6"><h3>Widget Six</h3></a><p>$20.00</p></article>
+      </div>
+      <button type="button" id="load-more">Load more</button>
+    </main>
+    <script>
+      const grid = document.getElementById("grid");
+      const button = document.getElementById("load-more");
+      let extra = 0;
+      button.addEventListener("click", () => {
+        extra += 1;
+        if (extra > 1) {
+          button.disabled = true;
+          return;
+        }
+        for (let i = 0; i < 3; i += 1) {
+          const n = 6 + i + 1;
+          const card = document.createElement("article");
+          card.className = "card";
+          card.innerHTML = `<a href="/product/${n}"><h3>Widget ${n}</h3></a><p>$21.00</p>`;
+          grid.appendChild(card);
+        }
+      });
+    </script>
+  </body>
+</html>
