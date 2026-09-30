@@ -230,7 +230,17 @@ async function runPagination(opts) {
 
 globalThis.__omniRunPagination = runPagination;
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+function isExtensionPageSender(sender) {
+  if (!sender || sender.id !== chrome.runtime.id) return false;
+  const url = typeof sender.url === "string" ? sender.url : "";
+  return url.startsWith(`chrome-extension://${chrome.runtime.id}/`);
+}
+
+globalThis.__omniIsExtensionPageSender = isExtensionPageSender;
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!isExtensionPageSender(sender)) return false;
+
   if (message?.type === "OPEN_DATA_TABLE") {
     const url = chrome.runtime.getURL("data/table.html");
     (async () => {

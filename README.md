@@ -82,7 +82,9 @@ You're ready when:
 - The header shows the mascot plus the **Account**, **Notifications**, and **Settings** icons
 - The nav shows **Extractors**, **Ship**, and **Cloud**
 
-If the panel doesn't react on a page that was open before installing, refresh that tab so the content script is injected.
+The first time you select or extract on a site, Chrome asks Omni Extractor to read **that site only**. Allow it once; the same site does not ask again. Other sites stay closed until you allow them too.
+
+If the panel doesn't react on a page that was open before installing, refresh that tab and allow the site when Chrome asks.
 
 ---
 
@@ -208,6 +210,7 @@ tests/                   # Playwright fixtures and Chromium extension tests
 | Format check | `npm run format:check` |
 | Format | `npm run format` |
 | Extension tests | `npx playwright install chromium`, then `npm test` |
+| Report a vulnerability | See [SECURITY.md](SECURITY.md) |
 
 `npm test` launches Chromium with the unpacked `extension/` folder and runs it against local fixture pages (a product grid, a real Load more button, multi-page reloads, SPA pagination, and a formula-injection row). Lint and tests also run in GitHub Actions (`.github/workflows/ci.yml`).
 
@@ -226,7 +229,6 @@ Conventions:
 - **Account**: Google sign-in in Chrome
 - **Cloud**: optional sync and remote dataset tools
 - More extractors beyond lists
-- MIT license at the first stable release
 
 ---
 
@@ -236,4 +238,4 @@ Brand, mascot, and product design by the Omni Extractor team. Governance workflo
 
 ## License
 
-The project is in its early releases and no license has been published yet. It will be released under the **MIT** license once it reaches a stable version.
+[MIT](LICENSE) © 2026 Luiz Santiago.

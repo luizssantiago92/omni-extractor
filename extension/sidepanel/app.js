@@ -235,6 +235,88 @@
     return true;
   }
 
+  const SITE_ACCESS_MESSAGE =
+    "Allow Omni Extractor to read this site, then try again.";
+  const siteAccess = { tabId: null, pattern: null };
+
+  function hostPatternFromUrl(url) {
+    if (!url || !/^https?:/i.test(url)) return null;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return null;
+      }
+      return `${parsed.origin}/*`;
+    } catch {
+      return null;
+    }
+  }
+
+  function rememberTab(tab) {
+    if (!tab?.id || !tab.url) return;
+    siteAccess.tabId = tab.id;
+    siteAccess.pattern = hostPatternFromUrl(tab.url);
+  }
+
+  async function refreshSiteAccess() {
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      rememberTab(tab);
+    } catch {
+      /* The panel can open before a tab URL is readable. */
+    }
+  }
+
+  function watchSiteAccess() {
+    chrome.tabs.onActivated.addListener(() => {
+      refreshSiteAccess();
+    });
+    chrome.tabs.onUpdated.addListener((_tabId, info) => {
+      if (info.url || info.status === "complete") refreshSiteAccess();
+    });
+    refreshSiteAccess();
+  }
+
+  function requestSiteAccess() {
+    const pattern = siteAccess.pattern;
+    if (!pattern) {
+      refreshSiteAccess();
+      return Promise.resolve("missing");
+    }
+    const pending = chrome.permissions.request({ origins: [pattern] });
+    return (async () => {
+      try {
+        return (await pending) ? "granted" : "denied";
+      } catch {
+        return "denied";
+      }
+    })();
+  }
+
+  function afterSiteAccess(run) {
+    const pending = requestSiteAccess();
+    (async () => {
+      try {
+        const status = await pending;
+        if (status !== "granted") {
+          await refreshSiteAccess();
+          alert(
+            status === "missing"
+              ? "Open an http(s) page to extract"
+              : SITE_ACCESS_MESSAGE,
+          );
+          return;
+        }
+        await run();
+      } catch (err) {
+        alert(String(err?.message || err));
+      }
+    })();
+  }
+
   async function activeTab() {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -249,6 +331,7 @@
     if (!tab.url || !/^https?:/i.test(tab.url)) {
       throw new Error("Open an http(s) page to extract");
     }
+    rememberTab(tab);
     state.boundTabId = tab.id;
     return tab;
   }
@@ -267,15 +350,29 @@
     });
   }
 
+  async function assertTabHostAccess(tab) {
+    const pattern = hostPatternFromUrl(tab?.url);
+    const allowed = pattern
+      ? await chrome.permissions.contains({ origins: [pattern] })
+      : false;
+    if (!allowed) {
+      await refreshSiteAccess();
+      throw new Error(SITE_ACCESS_MESSAGE);
+    }
+  }
+
   async function sendToTab(message) {
     if (!state.boundTabId) await pinActiveTab();
     const tab = await chrome.tabs.get(state.boundTabId);
     if (!tab?.url || !/^https?:/i.test(tab.url)) {
       throw new Error("Open an http(s) page to extract");
     }
+    await assertTabHostAccess(tab);
     await ensureContentScript(tab.id);
     return chrome.tabs.sendMessage(tab.id, message);
   }
+
+  watchSiteAccess();
 
   function clearRunError() {
     if (!els.runError) return;
@@ -320,29 +417,31 @@
       x.title = "Remove block";
       x.setAttribute("aria-label", `Remove block ${i + 1}`);
       x.textContent = "×";
-      x.addEventListener("click", async (e) => {
+      x.addEventListener("click", (e) => {
         e.stopPropagation();
-        state.selections.splice(i, 1);
-        if (!state.selections.length) {
-          resetBlockSelection();
-          await setFocusMode(false);
-          try {
-            await sendToTab({ type: "OMNI_CANCEL_PICKER" });
-          } catch {
-            /* ignore */
+        afterSiteAccess(async () => {
+          state.selections.splice(i, 1);
+          if (!state.selections.length) {
+            resetBlockSelection();
+            await setFocusMode(false);
+            try {
+              await sendToTab({ type: "OMNI_CANCEL_PICKER" });
+            } catch {
+              /* ignore */
+            }
+          } else {
+            try {
+              await sendToTab({
+                type: "OMNI_SET_SELECTION",
+                selections: state.selections,
+              });
+              if (state.focusOn) await setFocusMode(true);
+            } catch {
+              /* ignore */
+            }
           }
-        } else {
-          try {
-            await sendToTab({
-              type: "OMNI_SET_SELECTION",
-              selections: state.selections,
-            });
-            if (state.focusOn) await setFocusMode(true);
-          } catch {
-            /* ignore */
-          }
-        }
-        renderListState();
+          renderListState();
+        });
       });
       li.appendChild(label);
       li.appendChild(x);
@@ -1188,7 +1287,7 @@
     return;
   }
 
-  els.btnSelectList.addEventListener("click", async () => {
+  els.btnSelectList.addEventListener("click", () => {
     if (state.extracting) return;
 
     // Filter / Full page / Pages — guide only: nudge toward Start
@@ -1199,92 +1298,95 @@
       return;
     }
 
-    try {
-      await pinActiveTab();
-    } catch (err) {
-      alert(String(err.message || err));
-      return;
-    }
-
-    // Blocks: second click while picking cancels selection mode
-    if (state.picking) {
-      state.picking = false;
-      renderListState();
+    afterSiteAccess(async () => {
       try {
-        await sendToTab({ type: "OMNI_CANCEL_PICKER" });
-      } catch {
-        /* ignore */
+        await pinActiveTab();
+      } catch (err) {
+        alert(String(err.message || err));
+        return;
       }
-      return;
-    }
 
-    try {
-      const keep = state.selections.length > 0;
-      state.picking = true;
-      state.selectionDone = false;
-      if (!keep) {
-        state.selections = [];
-        state.excludedKeys = [];
+      // Blocks: second click while picking cancels selection mode
+      if (state.picking) {
+        state.picking = false;
+        renderListState();
+        try {
+          await sendToTab({ type: "OMNI_CANCEL_PICKER" });
+        } catch {
+          /* ignore */
+        }
+        return;
       }
-      renderListState();
-      await sendToTab({
-        type: "OMNI_START_LIST_PICKER",
-        multi: true,
-        keepSelections: keep,
-      });
-      if (keep) {
-        await sendToTab({
-          type: "OMNI_SET_SELECTION",
-          selections: state.selections,
-        });
-      }
-    } catch (err) {
-      state.picking = false;
-      renderListState();
-      alert(String(err.message || err));
-    }
-  });
 
-  els.btnDoneBlocks.addEventListener("click", async () => {
-    if (!state.selections.length) return;
-    try {
-      await pinActiveTab();
-    } catch (err) {
-      alert(String(err.message || err));
-      return;
-    }
-    if (state.selectionDone) {
-      state.selectionDone = false;
-      state.picking = true;
-      renderListState();
       try {
+        const keep = state.selections.length > 0;
+        state.picking = true;
+        state.selectionDone = false;
+        if (!keep) {
+          state.selections = [];
+          state.excludedKeys = [];
+        }
+        renderListState();
         await sendToTab({
           type: "OMNI_START_LIST_PICKER",
           multi: true,
-          keepSelections: true,
+          keepSelections: keep,
         });
-        await sendToTab({
-          type: "OMNI_SET_SELECTION",
-          selections: state.selections,
-        });
+        if (keep) {
+          await sendToTab({
+            type: "OMNI_SET_SELECTION",
+            selections: state.selections,
+          });
+        }
       } catch (err) {
+        state.picking = false;
+        renderListState();
         alert(String(err.message || err));
       }
-      return;
-    }
-    state.picking = false;
-    state.selectionDone = true;
-    try {
-      await sendToTab({ type: "OMNI_FINISH_MULTI_PICK" });
-    } catch {
-      /* ignore */
-    }
-    renderListState();
+    });
   });
 
-  document
-    .getElementById("btn-reselect")
-    .addEventListener("click", async () => {
+  els.btnDoneBlocks.addEventListener("click", () => {
+    if (!state.selections.length) return;
+    afterSiteAccess(async () => {
+      try {
+        await pinActiveTab();
+      } catch (err) {
+        alert(String(err.message || err));
+        return;
+      }
+      if (state.selectionDone) {
+        state.selectionDone = false;
+        state.picking = true;
+        renderListState();
+        try {
+          await sendToTab({
+            type: "OMNI_START_LIST_PICKER",
+            multi: true,
+            keepSelections: true,
+          });
+          await sendToTab({
+            type: "OMNI_SET_SELECTION",
+            selections: state.selections,
+          });
+        } catch (err) {
+          alert(String(err.message || err));
+        }
+        return;
+      }
+      state.picking = false;
+      state.selectionDone = true;
+      try {
+        await sendToTab({ type: "OMNI_FINISH_MULTI_PICK" });
+      } catch {
+        /* ignore */
+      }
+      renderListState();
+    });
+  });
+
+  document.getElementById("btn-reselect").addEventListener("click", () => {
+    afterSiteAccess(async () => {
       await setFocusMode(false);
       resetBlockSelection();
       resetComplete();
@@ -1296,15 +1398,18 @@
         /* ignore */
       }
     });
+  });
 
-  els.btnFocusEye?.addEventListener("click", async () => {
+  els.btnFocusEye?.addEventListener("click", () => {
     if (!state.selections.length) return;
-    try {
-      await pinActiveTab();
-    } catch {
-      /* Focus still toggles locally if the page cannot be scripted. */
-    }
-    await setFocusMode(!state.focusOn);
+    afterSiteAccess(async () => {
+      try {
+        await pinActiveTab();
+      } catch {
+        /* Focus still toggles locally if the page cannot be scripted. */
+      }
+      await setFocusMode(!state.focusOn);
+    });
   });
 
   document.getElementById("btn-info")?.addEventListener("click", () => {
@@ -1313,9 +1418,8 @@
     );
   });
 
-  document
-    .getElementById("btn-refresh")
-    ?.addEventListener("click", async () => {
+  document.getElementById("btn-refresh")?.addEventListener("click", () => {
+    afterSiteAccess(async () => {
       await setFocusMode(false);
       resetBlockSelection();
       els.buttonBanner.classList.add("is-hidden");
@@ -1333,6 +1437,7 @@
         /* ignore */
       }
     });
+  });
 
   document.getElementById("btn-close")?.addEventListener("click", async () => {
     await setFocusMode(false);
@@ -1373,103 +1478,109 @@
     }
   });
 
-  els.btnPickAction.addEventListener("click", async () => {
-    try {
-      await pinActiveTab();
-      els.buttonBanner.classList.remove("is-hidden");
-      await sendToTab({ type: "OMNI_START_BUTTON_PICKER" });
-    } catch (err) {
-      els.buttonBanner.classList.add("is-hidden");
-      alert(String(err.message || err));
-    }
-  });
-
-  els.btnStart.addEventListener("click", async () => {
-    if (!canStart()) return;
-    state.extracting = true;
-    clearRunError();
-    els.progressBox.classList.remove("is-hidden");
-    els.progressCount.textContent = "0";
-    els.btnStart.disabled = true;
-    try {
-      await pinActiveTab();
-      let result;
-      if (state.mode === "pagination") {
-        result = await chrome.runtime.sendMessage({
-          type: "OMNI_PAGINATION_START",
-          tabId: state.boundTabId,
-          pagesAll: state.pagesAll,
-          pageLimit: state.pagesAll ? null : state.pageLimit,
-          actionSelector: state.actionSelector || null,
-        });
-      } else {
-        result = await sendToTab({
-          type: "OMNI_RUN_EXTRACT",
-          mode: state.mode,
-          paradigm: state.mode,
-          selections: state.mode === "blocks" ? state.selections : undefined,
-          actionSelector: state.actionSelector || undefined,
-          filterTokens:
-            state.mode === "filter"
-              ? parseFilterTokens(state.filterRaw).tokens
-              : undefined,
-          excludeKeys: state.mode === "blocks" ? state.excludedKeys : undefined,
-        });
-      }
-      const partialPagination =
-        state.mode === "pagination" &&
-        Array.isArray(result?.pages) &&
-        result.pages.length > 0;
-      if (result?.quota) {
-        const error = new Error(
-          result.error || globalThis.OmniStorage.QUOTA_MESSAGE,
-        );
-        error.quota = true;
-        if (!partialPagination && !result.rows?.length) throw error;
-        showRunError(error.message);
-      } else if (!result?.ok) {
-        if (!partialPagination) {
-          throw new Error(result?.error || "Extraction failed");
-        }
-        showRunError(result.error || "Extraction stopped early");
-      }
-      if (
-        state.excludedKeys.length &&
-        Array.isArray(result.rows) &&
-        state.mode === "blocks"
-      ) {
-        const ex = new Set(state.excludedKeys);
-        result.rows = result.rows.filter((r) => !ex.has(rowKey(r)));
-      }
-
-      let pageCount = 0;
-      if (state.mode === "pagination") {
-        pageCount = result.pageCount || result.pages?.length || 0;
-        state.lastCount = result.totalRows ?? (result.rows || []).length;
-        state.lastCollectionId = result.collectionId || null;
-        state.lastDatasetId = result.lastDatasetId || null;
-      } else {
-        const ds = await saveDataset(result);
-        state.lastCount = ds.rows.length;
-      }
-      state.lastPageCount = pageCount;
-      state.lastThumbs = (result.rows || [])
-        .map((r) => r.image)
-        .filter(Boolean);
-      showComplete(state.lastCount, state.lastThumbs, pageCount);
-    } catch (err) {
-      if (err?.quota || globalThis.OmniStorage.isQuotaError(err)) {
-        showRunError(
-          err.quota ? err.message : globalThis.OmniStorage.QUOTA_MESSAGE,
-        );
-      } else {
+  els.btnPickAction.addEventListener("click", () => {
+    afterSiteAccess(async () => {
+      try {
+        await pinActiveTab();
+        els.buttonBanner.classList.remove("is-hidden");
+        await sendToTab({ type: "OMNI_START_BUTTON_PICKER" });
+      } catch (err) {
+        els.buttonBanner.classList.add("is-hidden");
         alert(String(err.message || err));
       }
-    } finally {
-      state.extracting = false;
-      els.progressBox.classList.add("is-hidden");
-      renderListState();
-    }
+    });
+  });
+
+  els.btnStart.addEventListener("click", () => {
+    if (!canStart()) return;
+    afterSiteAccess(async () => {
+      state.extracting = true;
+      clearRunError();
+      els.progressBox.classList.remove("is-hidden");
+      els.progressCount.textContent = "0";
+      els.btnStart.disabled = true;
+      try {
+        const tab = await pinActiveTab();
+        await assertTabHostAccess(tab);
+        let result;
+        if (state.mode === "pagination") {
+          result = await chrome.runtime.sendMessage({
+            type: "OMNI_PAGINATION_START",
+            tabId: state.boundTabId,
+            pagesAll: state.pagesAll,
+            pageLimit: state.pagesAll ? null : state.pageLimit,
+            actionSelector: state.actionSelector || null,
+          });
+        } else {
+          result = await sendToTab({
+            type: "OMNI_RUN_EXTRACT",
+            mode: state.mode,
+            paradigm: state.mode,
+            selections: state.mode === "blocks" ? state.selections : undefined,
+            actionSelector: state.actionSelector || undefined,
+            filterTokens:
+              state.mode === "filter"
+                ? parseFilterTokens(state.filterRaw).tokens
+                : undefined,
+            excludeKeys:
+              state.mode === "blocks" ? state.excludedKeys : undefined,
+          });
+        }
+        const partialPagination =
+          state.mode === "pagination" &&
+          Array.isArray(result?.pages) &&
+          result.pages.length > 0;
+        if (result?.quota) {
+          const error = new Error(
+            result.error || globalThis.OmniStorage.QUOTA_MESSAGE,
+          );
+          error.quota = true;
+          if (!partialPagination && !result.rows?.length) throw error;
+          showRunError(error.message);
+        } else if (!result?.ok) {
+          if (!partialPagination) {
+            throw new Error(result?.error || "Extraction failed");
+          }
+          showRunError(result.error || "Extraction stopped early");
+        }
+        if (
+          state.excludedKeys.length &&
+          Array.isArray(result.rows) &&
+          state.mode === "blocks"
+        ) {
+          const ex = new Set(state.excludedKeys);
+          result.rows = result.rows.filter((r) => !ex.has(rowKey(r)));
+        }
+
+        let pageCount = 0;
+        if (state.mode === "pagination") {
+          pageCount = result.pageCount || result.pages?.length || 0;
+          state.lastCount = result.totalRows ?? (result.rows || []).length;
+          state.lastCollectionId = result.collectionId || null;
+          state.lastDatasetId = result.lastDatasetId || null;
+        } else {
+          const ds = await saveDataset(result);
+          state.lastCount = ds.rows.length;
+        }
+        state.lastPageCount = pageCount;
+        state.lastThumbs = (result.rows || [])
+          .map((r) => r.image)
+          .filter(Boolean);
+        showComplete(state.lastCount, state.lastThumbs, pageCount);
+      } catch (err) {
+        if (err?.quota || globalThis.OmniStorage.isQuotaError(err)) {
+          showRunError(
+            err.quota ? err.message : globalThis.OmniStorage.QUOTA_MESSAGE,
+          );
+        } else {
+          alert(String(err.message || err));
+        }
+      } finally {
+        state.extracting = false;
+        els.progressBox.classList.add("is-hidden");
+        renderListState();
+      }
+    });
   });
 
   document.getElementById("btn-stop").addEventListener("click", async () => {
@@ -1506,7 +1617,8 @@
     e.preventDefault();
   });
 
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener((msg, sender) => {
+    if (!sender || sender.id !== chrome.runtime.id) return;
     if (
       msg?.type === "OMNI_BLOCK_ADDED" ||
       msg?.type === "OMNI_LIST_SELECTED"
